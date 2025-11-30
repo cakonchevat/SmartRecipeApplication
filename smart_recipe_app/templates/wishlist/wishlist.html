@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wishlist</title>
+</head>
+<body>
+<h2>{{ request.user.username }}'s wishlist</h2>
+
+<p>
+    <a href="{% url 'index' %}">Back to home</a> |
+    <a href="{% url 'pantry_list' %}">Go to pantry</a>
+</p>
+
+<h3>Recipes in your wishlist</h3>
+
+{% if wishlist_recipes %}
+    <ul>
+        {% for recipe in wishlist_recipes %}
+            <li>
+                {{ recipe.name }}
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                    <button type="submit" name="remove">Remove</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Your wishlist is empty.</p>
+{% endif %}
+
+<hr>
+
+<h3>All recipes (add to wishlist)</h3>
+
+{% if all_recipes %}
+    <ul>
+        {% for recipe in all_recipes %}
+            <li>
+                {{ recipe.name }}
+                {% if recipe in wishlist_recipes %}
+                    (already in wishlist)
+                {% else %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                        <button type="submit" name="add">Add to wishlist</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No recipes yet.</p>
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily plans</title>
+</head>
+<body>
+
+<h2>Your daily plans</h2>
+
+<p>
+    <a href="{% url 'daily_plan_create' %}">Create new plan</a>
+</p>
+
+{% if plans %}
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Date</th>
+        <th>Wanted calories</th>
+        <th>Total calories</th>
+        <th>Remaining calories</th>
+        <th>Actions</th>
+    </tr>
+    {% for plan in plans %}
+        <tr>
+            <td>{{ plan.date }}</td>
+            <td>{{ plan.wanted_calories }}</td>
+            <td>{{ plan.total_calories }}</td>
+            <td>{{ plan.remaining_calories }}</td>
+            <td>
+                <a href="{% url 'daily_plan_detail' plan.id %}">View</a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>You don't have any daily plans yet.</p>
+{% endif %}
+
+<p><a href="{% url 'index' %}">Back to home</a></p>
+
+</body>
+</html>

@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class SmartRecipeConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'smart_recipe'
+    name = 'smart_recipe_app'

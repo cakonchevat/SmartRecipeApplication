@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete pantry item</title>
+</head>
+<body>
+<h2>Delete pantry item</h2>
+<p>Are you sure you want to delete {{ item.ingredient.name }} ({{ item.quantity }} {{ item.unit }})?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, delete</button>
+</form>
+
+<p><a href="{% url 'pantry_list' %}">Cancel</a></p>
+</body>
+</html>

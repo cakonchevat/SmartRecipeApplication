@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from datetime import date
 
 User = get_user_model()
 
 
+# ----- DIET -----
 class Diet(models.Model):
     name = models.CharField(max_length=50)
 
@@ -11,17 +13,41 @@ class Diet(models.Model):
         return self.name
 
 
+# ----- INGREDIENT -----
 class Ingredient(models.Model):
+    UNIT_CHOICES = [
+        ('g', 'grams (g)'),
+        ('kg', 'kilograms (kg)'),
+        ('ml', 'milliliters (ml)'),
+        ('l', 'liters (l)'),
+        ('piece', 'piece'),
+        ('tsp', 'teaspoon'),
+        ('tbsp', 'tablespoon'),
+        ('cup', 'cup'),
+    ]
     name = models.CharField(max_length=100)
     allergens = models.CharField(max_length=255, blank=True)
-    base_unit = models.CharField(max_length=20)  # 'g', 'ml', 'piece'
-    calories_per_unit = models.FloatField()      # kcal per base_unit
+    base_unit = models.CharField(max_length=20, choices=UNIT_CHOICES)  # g, kg, ml, l, piece, cup
+
+    base_amount = models.FloatField(
+        help_text="Amount of base_unit used for calorie calculation (e.g. 100 g, 100 ml, 1 piece)"
+    )
+    calories_per_base_amount = models.FloatField(
+        help_text="Calories for the base amount (e.g. kcal per 100 g)"
+    )
 
     diets = models.ManyToManyField(
         Diet,
         through='IngredientDiet',
-        related_name='ingredients'
+        related_name='ingredients'  # sets the reverse relatioship from diet --> ingredient (diet.ingredients.all())
     )
+
+    def calories_per_one_unit(self):
+        """
+        Returns kcal per 1 base_unit.
+        Example: if calories_per_base_amount=364 per base_amount=100g => 3.64 kcal per 1g
+        """
+        return self.calories_per_base_amount / self.base_amount
 
     def __str__(self):
         return self.name
@@ -35,6 +61,7 @@ class IngredientDiet(models.Model):
         unique_together = ('ingredient', 'diet')
 
 
+# ----- RECIPE -----
 class Recipe(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -55,9 +82,14 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
+    # calculates total calories by accumulating the calories
+    # for each RecipeIngredient connected to the specified recipe
     @property
     def total_calories(self):
-        return sum(ri.calories for ri in self.recipeingredient_set.all())
+        total = 0
+        for ri in self.recipeingredient_set.all():
+            total += ri.calories
+        return total
 
     @property
     def calories_per_serving(self):
@@ -73,8 +105,11 @@ class RecipeIngredient(models.Model):
 
     @property
     def calories(self):
-        return self.quantity * self.ingredient.calories_per_unit
+        kcal_per_one_unit = self.ingredient.calories_per_one_unit()
+        return self.quantity * kcal_per_one_unit;
 
+
+# ----- WISHLIST -----
 class Wishlist(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wishlist')
     recipes = models.ManyToManyField(Recipe, related_name='wishlists', blank=True)
@@ -82,6 +117,8 @@ class Wishlist(models.Model):
     def __str__(self):
         return f"{self.user.username}'s wishlist"
 
+
+# ----- PANTRY -----
 class Pantry(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='pantry')
 
@@ -97,18 +134,17 @@ class PantryItem(models.Model):
     pantry = models.ForeignKey(Pantry, on_delete=models.CASCADE, related_name='items')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.FloatField()
-    unit = models.CharField(max_length=20)  # you can enforce same as ingredient.base_unit later
+    base_unit = models.CharField(max_length=20)
     source = models.CharField(max_length=20, choices=Source.choices, default=Source.MANUAL)
 
     class Meta:
         unique_together = ('pantry', 'ingredient')
 
     def __str__(self):
-        return f"{self.quantity} {self.unit} {self.ingredient.name}"
-
-from datetime import date
+        return f"{self.quantity} {self.base_unit} {self.ingredient.name}"
 
 
+# ----- DAILY PLAN -----
 class DailyPlan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_plans')
     date = models.DateField(default=date.today)
@@ -125,4 +161,3 @@ class DailyPlan(models.Model):
     @property
     def remaining_calories(self):
         return self.wanted_calories - self.total_calories
-

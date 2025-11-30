@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily plan {{ plan.date }}</title>
+</head>
+<body>
+
+<h2>Plan for {{ plan.date }}</h2>
+
+<p>
+    Wanted calories: <strong>{{ plan.wanted_calories }}</strong><br>
+    Total calories from recipes: <strong>{{ plan.total_calories }}</strong><br>
+    Remaining calories: 
+    <strong>
+        {{ plan.remaining_calories }}
+    </strong>
+</p>
+
+<h3>Recipes in this plan</h3>
+
+{% if plan.recipes.all %}
+    <ul>
+        {% for recipe in plan.recipes.all %}
+            <li>
+                {{ recipe.name }} –
+                total: {{ recipe.total_calories }} kcal
+                (per serving: {{ recipe.calories_per_serving|floatformat:0 }} kcal)
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No recipes selected for this plan.</p>
+{% endif %}
+
+<p>
+    <a href="{% url 'daily_plans' %}">Back to all plans</a>
+</p>
+
+</body>
+</html>

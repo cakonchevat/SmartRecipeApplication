@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pantry</title>
+    <style>
+        /* "modal" overlay без JS */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            background: white;
+            padding: 20px;
+            min-width: 300px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+<h2>{{ request.user.username }}'s pantry</h2>
+
+<p><a href="{% url 'index' %}">Back to home</a></p>
+
+<h3>Items</h3>
+{% if items %}
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Ingredient</th>
+        <th>Quantity</th>
+        <th>Unit</th>
+        <th>Source</th>
+        <th>Actions</th>
+    </tr>
+    {% for item in items %}
+        <tr>
+            <td>{{ item.ingredient.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit }}</td>
+            <td>{{ item.get_source_display }}</td>
+            <td>
+                <a href="{% url 'pantry_edit_item' item.id %}">Edit</a>
+                |
+                <a href="{% url 'pantry_delete_item' item.id %}">Delete</a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No items in your pantry yet.</p>
+{% endif %}
+
+<p>
+    <a href="{% url 'pantry_add_item' %}">Add new item</a>
+</p>
+
+{# "Modal" делот – се појавува само ако има form #}
+{% if form %}
+<div class="modal-backdrop">
+    <div class="modal">
+        {% if mode == 'add' %}
+            <h3>Add item</h3>
+        {% elif mode == 'edit' %}
+            <h3>Edit item: {{ editing_item.ingredient.name }}</h3>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">
+                {% if mode == 'add' %}Save{% else %}Update{% endif %}
+            </button>
+        </form>
+
+        <p>
+            <a href="{% url 'pantry_list' %}">Cancel</a>
+        </p>
+    </div>
+</div>
+{% endif %}
+
+</body>
+</html>

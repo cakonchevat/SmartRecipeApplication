@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create daily plan</title>
+</head>
+<body>
+
+<h2>Create daily plan</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save plan</button>
+</form>
+
+<p><a href="{% url 'daily_plans' %}">Back to plans</a></p>
+
+</body>
+</html>
