@@ -7,9 +7,9 @@ urlpatterns = [
     path('logout/', views.register, name='logout'),
 
     # Pantry
-    path('pantry/', views.pantry_list, name='pantry_list'),
+    path('pantry/', views.pantry_list, name='pantry'),
     path('pantry/add/', views.pantry_add_item, name='pantry_add_item'),
-    path('pantry/<item_id>/edit/', views.pantry_edit_item, name='pantry_edit_item'),
+    # path('pantry/<item_id>/edit/', views.pantry_edit_item, name='pantry_edit_item'),
     path('pantry/<item_id>/delete/', views.pantry_delete_item, name='pantry_delete_item'),
 
     # Wishlist

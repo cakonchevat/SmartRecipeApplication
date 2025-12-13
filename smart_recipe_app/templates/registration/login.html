@@ -1,21 +1,60 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-<body>
-<h2>Login</h2>
+{% extends "base.html" %}
+{% load static %}
 
-{% if form.errors %}
-    <p style="color:red;">Invalid username or password.</p>
-{% endif %}
+{% block title %}Login{% endblock %}
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
+{% block extra_css %}
+    <style>
+        a {
+            color: #28a745;
+        }
 
-<p>Don't have an account yet? <a href="{% url 'register' %}">Register here</a></p>
-</body>
-</html>
+        a:hover {
+            color: #1e7e34;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        
+    </style>
+{% endblock %}
+{% block content %}
+
+
+
+
+    <div class="small-container">
+        <h3 class="text-center mb-3 text-green">Login</h3>
+
+        {% if form.errors %}
+            <div class="alert alert-danger py-2">
+                Invalid username or password.
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                {{ form.username }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn btn-green btn-green-shadow w-100 mt-2">Login</button>
+        </form>
+
+        <p class="text-center mt-3 mb-0">
+            Don't have an account? <a href="{% url 'register' %}">Register</a>
+        </p>
+    </div>
+
+{% endblock %}

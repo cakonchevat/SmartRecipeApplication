@@ -1,80 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Smart Recipe</title>
-    <style>
-        /* Едноставен layout за навигација */
-        .navbar {
-            background: #f2f2f2;
-            padding: 10px 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
+{% extends "base.html" %}
+{% load static %}
 
-        .nav-left, .nav-right {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+{% block title %} Home {% endblock %}
 
-        .nav-link {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-        }
 
-        .nav-link:hover {
-            text-decoration: underline;
-        }
 
-        .logout-form {
-            display: inline;
-            margin: 0;
-        }
+{% block content %}
 
-        .logout-button {
-            border: none;
-            background: #e74c3c;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-        }
+<div>
 
-        .logout-button:hover {
-            background: #c0392b;
-        }
-    </style>
-</head>
-<body>
 
-<div class="navbar">
-    <div class="nav-left">
-        <span><strong>SmartRecipe</strong></span>
-        <a href="{% url 'index' %}" class="nav-link">Home</a>
-        <a href="{% url 'pantry_list' %}" class="nav-link">Pantry</a>
-        <a href="{% url 'wishlist' %}" class="nav-link">Wishlist</a>
-        <a href="{% url 'daily_plans' %}" class="nav-link">Daily plans</a>
-    </div>
-
-    <div class="nav-right">
-        <span>Hi, {{ request.user.username }}!</span>
-        <form method="post" action="{% url 'logout' %}" class="logout-form">
-            {% csrf_token %}
-            <button type="submit" class="logout-button">Logout</button>
-        </form>
-    </div>
 </div>
 
-<h2>Welcome to SmartRecipe</h2>
-<p>Тука подоцна можеш да ставиш краток overview, линкови, статистики, итн.</p>
 
-<form method="post" action="{% url 'logout' %}" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit">Logout</button>
-</form>
-
-</body>
-</html>
+{% endblock %}

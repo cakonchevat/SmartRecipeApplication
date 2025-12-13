@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 
-from smart_recipe_app.forms import PantryItemForm,DailyPlanForm
-from smart_recipe_app.models import Pantry, PantryItem, Wishlist, Recipe, DailyPlan
+from smart_recipe_app.forms import PantryItemForm, DailyPlanForm, AddPantryWithIngredientForm
+from smart_recipe_app.models import Pantry, PantryItem, Wishlist, Recipe, DailyPlan, Ingredient
 
 
 def register(request):
@@ -38,59 +38,53 @@ def pantry_list(request):
     return render(request, 'pantry/pantry.html', {
         'pantry': pantry,
         'items': items,
-        'form': None,
-        'mode': None,
-        'editing_item': None,
+        'Ingredient': Ingredient,  # ← за UNIT_CHOICES во template
     })
 
 
+# POST:
 @login_required
 def pantry_add_item(request):
     pantry = _get_user_pantry(request.user)
-    items = pantry.items.select_related('ingredient').all()
 
-    if request.method == 'POST':
-        form = PantryItemForm(request.POST)
+    if request.method == "POST":
+        form = AddPantryWithIngredientForm(request.POST)
         if form.is_valid():
-            item = form.save(commit=False)
-            item.pantry = pantry
-            item.source = PantryItem.Source.MANUAL
-            item.save()
-            return redirect('pantry_list')
-    else:
-        form = PantryItemForm()
 
-    # ја користиме истата страница, но со "modal" за додавање
-    return render(request, 'pantry/pantry.html', {
-        'pantry': pantry,
-        'items': items,
-        'form': form,
-        'mode': 'add',
-        'editing_item': None,
-    })
+            # 1. CREATE INGREDIENT
+            ingredient = Ingredient.objects.create(
+                name=form.cleaned_data['ingredient_name'],
+                base_unit=form.cleaned_data['ingredient_base_unit'],
+                base_amount=form.cleaned_data['ingredient_base_amount'],
+                calories_per_base_amount=form.cleaned_data['ingredient_calories_per_base_amount'],
+            )
+
+            # 2. CREATE PANTRY ITEM
+            PantryItem.objects.create(
+                pantry=pantry,
+                ingredient=ingredient,
+                quantity=form.cleaned_data['quantity'],
+                base_unit=ingredient.base_unit,  # ← АВТОМАТСКИ ЗЕМА ОД INGREDIENT
+                source=PantryItem.Source.MANUAL
+            )
+
+            return redirect('pantry')
+
+    return redirect('pantry')
 
 
-@login_required
-def pantry_edit_item(request, item_id):
-    pantry = _get_user_pantry(request.user)
-    item = get_object_or_404(PantryItem, id=item_id, pantry=pantry)
-    items = pantry.items.select_related('ingredient').all()
 
-    if request.method == 'POST':
-        form = PantryItemForm(request.POST, instance=item)
-        if form.is_valid():
-            form.save()
-            return redirect('pantry_list')
-    else:
-        form = PantryItemForm(instance=item)
-
-    return render(request, 'pantry/pantry.html', {
-        'pantry': pantry,
-        'items': items,
-        'form': form,
-        'mode': 'edit',
-        'editing_item': item,
-    })
+# @login_required
+# def pantry_edit_item(request, item_id):
+#     pantry = _get_user_pantry(request.user)
+#     item = get_object_or_404(PantryItem, id=item_id, pantry=pantry)
+#
+#     if request.method == "POST":
+#         item.quantity = request.POST.get("quantity")
+#         item.base_unit = request.POST.get("base_unit")
+#         item.save()
+#
+#     return redirect("pantry")
 
 
 @login_required
@@ -98,12 +92,11 @@ def pantry_delete_item(request, item_id):
     pantry = _get_user_pantry(request.user)
     item = get_object_or_404(PantryItem, id=item_id, pantry=pantry)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         item.delete()
-        return redirect('pantry_list')
 
-    # simple confirm страница
-    return render(request, 'pantry/pantry_confirm_delete.html', {'item': item})
+    return redirect("pantry")
+
 
 @login_required
 def wishlist_view(request):

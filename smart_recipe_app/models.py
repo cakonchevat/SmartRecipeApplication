@@ -134,7 +134,7 @@ class PantryItem(models.Model):
     pantry = models.ForeignKey(Pantry, on_delete=models.CASCADE, related_name='items')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.FloatField()
-    base_unit = models.CharField(max_length=20)
+    base_unit = models.CharField(max_length=20 , blank=True)
     source = models.CharField(max_length=20, choices=Source.choices, default=Source.MANUAL)
 
     class Meta:
