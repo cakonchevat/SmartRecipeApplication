@@ -100,7 +100,7 @@
                         <tr>
                             <td>{{ item.ingredient.name }}</td>
                             <td>{{ item.quantity }}</td>
-                            <td>{{ item.base_unit }}</td>
+                            <td>{{ item.ingredient.base_unit }}</td>
 
                             <td>
                                 <form method="post" action="{% url 'pantry_delete_item' item.id %}"

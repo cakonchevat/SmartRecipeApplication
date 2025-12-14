@@ -5,7 +5,7 @@
 </head>
 <body>
 <h2>Delete pantry item</h2>
-<p>Are you sure you want to delete {{ item.ingredient.name }} ({{ item.quantity }} {{ item.unit }})?</p>
+<p>Are you sure you want to delete {{ item.ingredient.name }} ({{ item.quantity }} {{ item.ingredient.base_unit }})?</p>
 
 <form method="post">
     {% csrf_token %}

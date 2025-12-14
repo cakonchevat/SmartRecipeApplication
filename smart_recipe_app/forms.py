@@ -1,11 +1,37 @@
 from django import forms
-from .models import PantryItem, DailyPlan, Ingredient
+from .models import *
 
+# Forms check whether the input is valid
+
+class DietForm(forms.ModelForm):
+    class Meta:
+        model = Diet
+        fields = ['name']
+
+class IngredientForm(forms.ModelForm):
+    class Meta:
+        model = Ingredient
+        fields = ['name', 'allergens', 'base_unit', 'base_amount', 'calories_per_base_amount']
+
+class IngredientDietRelationForm(forms.ModelForm):
+    class Meta:
+        model = IngredientDietRelation
+        fields = ["diet"]
+
+class RecipeForm(forms.ModelForm):
+    class Meta:
+        model = Recipe
+        fields = ['name', 'description', 'servings', 'preparation_time', 'image']
+
+class RecipeIngredientRelationForm(forms.ModelForm):
+    class Meta:
+        model = RecipeIngredientRelation
+        fields = ["ingredient", "quantity"]
 
 class PantryItemForm(forms.ModelForm):
     class Meta:
-        model = PantryItem
-        fields = ['ingredient', 'quantity', 'base_unit']
+        model = PantryItemRelation
+        fields = ['ingredient', 'quantity']
 
 class DailyPlanForm(forms.ModelForm):
     class Meta:
