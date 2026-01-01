@@ -1,88 +1,208 @@
+/* Base */
 body {
-    background-color: #f2fdf5;
-    font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
 
-.btn-green {
-    background-color: #28a745;
-    border: none;
-    color: white;
+a {
+  text-decoration: none;
 }
 
-.btn-green:hover {
-    background-color: #218838;
+/* Header / Navigation */
+.app-header {
+  background-color: #F9FBE7;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: relative; /* helps dropdown stacking */
+  z-index: 10;        /* keeps header above page content */
 }
 
-.btn-green-shadow {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-    transition: 0.25s ease-in-out;
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 90px;
+  padding: 0 230px 0 200px;
 }
 
-.btn-green-shadow:hover {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-    transform: translateY(-2px);
+.app-logo {
+  height: 85px;
+  width: auto;
+  display: block;
 }
 
+.app-header-right {
+  display: flex;
+  align-items: center;
+    margin-top: 6px;
+  gap: 40px;
+}
 
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Typography for header elements */
+.app-nav-link,
+.app-user-btn,
+.app-dropdown-item {
+  font-family: "Cormorant Garamond", "EB Garamond", "Garamond", "Georgia", serif;
+}
+
+.app-nav-link,
+.app-user-btn {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Nav links */
+.app-nav-link {
+  color: #AD3F3D;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 4px 2px;
+}
+
+.app-nav-link:hover {
+  color: #CE7E5A;
+}
+
+/* User button */
+.app-user-btn {
+  background: transparent;
+  border: none;
+  color: #AD3F3D;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.app-user-btn:hover {
+      color: #102E50;
+}
+
+.app-user-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Hide Bootstrap caret arrow */
+.app-user-btn.dropdown-toggle::after {
+  display: none !important;
+}
+
+/* Make sure dropdown isn't clipped by header flex containers */
+.app-header,
+.app-header-inner,
+.app-header-right {
+  overflow: visible;
+}
+
+/* Dropdown */
+.app-dropdown-menu {
+  background-color: white;
+  min-width: 240px;
+  padding: 18px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  z-index: 2000;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.app-dropdown-item {
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 20px;
+  color: #AD3F3D;
+}
+
+.app-dropdown-item:hover {
+  background: rgba(163, 72, 90, 0.15);
+  color: #662222;
+}
+
+/* Buttons */
+.btn-primary-app {
+  background-color: #00485a;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+}
+
+.btn-primary-app:hover {
+  background-color: #026780;
+  color: #fff;
+}
+
+.btn-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transition: 0.25s ease-in-out;
+}
+
+.btn-shadow:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+.app-logout-btn {
+  font-family: "Cormorant Garamond", "EB Garamond", "Garamond", "Georgia", serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* Containers */
 .small-container {
-    max-width: 420px;
-    margin: 80px auto;
-    background: white;
-    padding: 35px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
-    border-left: 6px solid #28a745;
+  max-width: 420px;
+  margin: 80px auto;
+  background: #fff;
+  padding: 35px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+  border-left: 6px solid #842A3B;
 }
+
 .big-container {
-    max-width: 900px;
-    margin: 40px auto;
-    background: white;
-    padding: 30px 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-    border-left: 6px solid #28a745;
+  max-width: 1000px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+  border-left: 6px solid #842A3B;
 }
 
-
-.sidebar {
-    width: 300px;
-    height: 100vh;
-    /*background-color: #f2fdf5;*/
-    background-color: white;
-    color: #28a745;
+/* Cards */
+.card {
+  border-radius: 18px;
+  border: none;
 }
 
-.sidebar .nav-link {
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-size: 16px;
-    color: #28a745;
+.card:hover {
+  transform: translateY(-2px);
+  transition: 0.15s ease;
 }
 
-.sidebar .nav-link:hover {
-    background-color: #e9f7ee; /* pale green hover */
-    color: #28a745;
-    font-weight: 500;
+/* Footer */
+footer {
+  background-color: #832B3B;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  color: #fff;
 }
 
-.sidebar .logout {
-    padding: 10px 4px;
-    font-size: 16px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-}
-
-.sidebar .btn {
-    color: #28a745 !important;
-}
-
-.sidebar .logout:hover {
-    background-color: #e9f7ee; /* pale green hover */
-    color: #28a745;
-    font-weight: 500;
-}
-
+/* Layout wrapper */
 .content {
-    margin-left: 0; /* No margin needed because flexbox handles layout */
+  margin-left: 0;
 }
-

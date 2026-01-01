@@ -11,22 +11,27 @@ class DietForm(forms.ModelForm):
 class IngredientForm(forms.ModelForm):
     class Meta:
         model = Ingredient
-        fields = ['name', 'allergens', 'base_unit', 'base_amount', 'calories_per_base_amount']
-
-class IngredientDietRelationForm(forms.ModelForm):
-    class Meta:
-        model = IngredientDietRelation
-        fields = ["diet"]
+        fields = ['name', 'base_unit', 'base_amount', 'calories_per_base_amount', 'allergens']
 
 class RecipeForm(forms.ModelForm):
     class Meta:
         model = Recipe
-        fields = ['name', 'description', 'servings', 'preparation_time', 'image']
+        fields = ['name', 'description', 'no_of_servings', 'preparation_time', 'image']
 
 class RecipeIngredientRelationForm(forms.ModelForm):
     class Meta:
         model = RecipeIngredientRelation
         fields = ["ingredient", "quantity"]
+
+class AddRecipeWithIngredientForm(forms.Form):
+    recipe_name = forms.CharField(max_length=200)
+    recipe_description = forms.CharField(required=False, widget=forms.Textarea)
+    no_of_servings = forms.IntegerField(min_value=1, initial=1)
+    preparation_time = forms.IntegerField(min_value=0)
+
+    # choose an existing ingredient
+    ingredient = forms.ModelChoiceField(queryset=Ingredient.objects.all())
+    quantity = forms.FloatField(min_value=0.0)
 
 class PantryItemForm(forms.ModelForm):
     class Meta:

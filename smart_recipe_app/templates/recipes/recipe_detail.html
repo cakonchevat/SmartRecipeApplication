@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ recipe.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h2 class="mb-1">{{ recipe.name }}</h2>
+    <div class="text-muted">
+      Servings: <b>{{ recipe.no_of_servings }}</b> · Prep: <b>{{ recipe.preparation_time }} min</b>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'recipe_edit' recipe.pk %}">
+      <i class="bi bi-pencil"></i> Edit
+    </a>
+    <a class="btn btn-outline-danger" href="{% url 'recipe_delete' recipe.pk %}">
+      <i class="bi bi-trash"></i> Delete
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Description</h5>
+        <p class="mb-0 text-muted">{{ recipe.description|default:"No description." }}</p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <h5 class="card-title">Calories</h5>
+        <div class="d-flex justify-content-between">
+          <span>Total calories</span>
+          <span class="fw-semibold">{{ recipe.total_calories|floatformat:2 }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Calories per serving</span>
+          <span class="fw-semibold">{{ recipe.calories_per_serving|floatformat:2 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Image</h5>
+        {% if recipe.image %}
+          <img src="{{ recipe.image.url }}" class="img-fluid rounded" alt="{{ recipe.name }}">
+        {% else %}
+          <p class="text-muted mb-0">No image uploaded.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+  <div class="card-body p-0">
+    <div class="p-3">
+      <h5 class="mb-0">Ingredients</h5>
+    </div>
+    <table class="table table-striped mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Ingredient</th>
+          <th class="text-center">Quantity</th>
+          <th class="text-center">Unit</th>
+          <th class="text-end">Calories</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rel in relations %}
+          <tr>
+            <td>{{ rel.ingredient.name }}</td>
+            <td class="text-center">{{ rel.quantity }}</td>
+            <td class="text-center">{{ rel.ingredient.get_base_unit_display }}</td>
+            <td class="text-end">{{ rel.calories|floatformat:2 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-4">No ingredients added.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a class="btn btn-light" href="{% url 'recipe_list' %}">
+    <i class="bi bi-arrow-left"></i> Back to recipes
+  </a>
+</div>
+{% endblock %}

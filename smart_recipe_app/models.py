@@ -11,6 +11,8 @@ class Diet(models.Model):
     def __str__(self):
         return self.name
 
+class Allergen(models.Model):
+    name = models.CharField(max_length=50, unique=True)
 
 class Ingredient(models.Model):
     UNIT_CHOICES = [
@@ -24,23 +26,16 @@ class Ingredient(models.Model):
         ('cup', 'cup'),
     ]
     name = models.CharField(max_length=100, unique=True)
-    allergens = models.CharField(max_length=255, blank=True)
     base_unit = models.CharField(max_length=20, choices=UNIT_CHOICES,
                                  help_text="Mass units like kilograms (kg), grams (g), liters (l) and etc.")
-    base_amount = models.FloatField(
-        help_text="Amount of base_unit used for calorie calculation (e.g. 100 g, 100 ml, 1 piece)"
-    )
-    calories_per_base_amount = models.FloatField(
-        help_text="Calories for the base amount (e.g. kcal per 100 g)"
-    )
+    base_amount = models.FloatField(help_text="Amount of base_unit used for calorie calculation (e.g. 100 g, 100 ml, 1 piece)")
+    calories_per_base_amount = models.FloatField(help_text="Calories for the base amount (e.g. kcal per 100 g)")
 
-    # the api to use the relationship in queries
-    diets = models.ManyToManyField(
-        Diet,
-        through='IngredientDietRelation',
-        related_name='ingredients'  # sets the reverse relationship from diet -> ingredient (diet.ingredients.all())
-    )
+    allergens = models.ManyToManyField(Allergen, blank=True, related_name='ingredients')  # allergen.ingredients.all()
+    diets = models.ManyToManyField(Diet, through='IngredientDietRelation', related_name='ingredients')  # diet.ingredients.all()
 
+
+    @property
     def calories_per_one_unit(self):
          # Example: if calories_per_base_amount = 78kcal for base_amount 100 and base_unit grams, the calories per one unit would be the value 78,
          # divided by the base amount 100, to get 0.78 kcal per gram
@@ -51,8 +46,8 @@ class Ingredient(models.Model):
 
 
 class IngredientDietRelation(models.Model):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    diet = models.ForeignKey(Diet, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='ingredient_diets')  # ingredients.ingredient_diets.all()
+    diet = models.ForeignKey(Diet, on_delete=models.CASCADE, related_name='diet_ingredients')  # diets.diet_ingredients.all()
 
     class Meta:
         unique_together = ('ingredient', 'diet')
@@ -61,19 +56,11 @@ class IngredientDietRelation(models.Model):
 class Recipe(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    servings = models.PositiveIntegerField(default=1)
+    no_of_servings = models.PositiveIntegerField(default=1)
     preparation_time = models.PositiveIntegerField(help_text="Minutes")
-    image = models.ImageField(
-        upload_to='recipes/',
-        blank=True,
-        null=True
-    )
+    image = models.ImageField(upload_to='recipes/', blank=True, null=True)
 
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        through='RecipeIngredientRelation',
-        related_name='recipes'
-    )
+    ingredients = models.ManyToManyField(Ingredient, through='RecipeIngredientRelation', related_name='recipes')  # ingredient.recipes.all()
 
     def __str__(self):
         return self.name
@@ -81,28 +68,35 @@ class Recipe(models.Model):
     # calculates total calories by accumulating the calories per Ingredient for that Recipe
     @property
     def total_calories(self):
-        return sum(ingredient_per_recipe.calories for ingredient_per_recipe in self.made_of.all())
+        return sum(ingredient_per_recipe.calories for ingredient_per_recipe in self.recipe_ingredients.all())
 
     @property
     def calories_per_serving(self):
-        # Example: if the recipe has servings defined (like 4 servings / plates), divide the calories per servings (per person)
-        if self.servings:
-            return self.total_calories / self.servings
+        # Example: if the recipes has servings defined (like 4 servings / plates), divide the calories per servings (per person)
+        if self.no_of_servings:
+            return self.total_calories / self.no_of_servings
         return None
 
-    # Set of recipes for a particular diet, based on their ingredients
+    # Set of recipes for a particular diets, based on their ingredients
     @classmethod
     def recipes_for_diet(cls, diet_id):
         query_set = cls.objects.all()
-        query_set = query_set.exclude(made_of__isnull=True)  # remove recipes with 0 ingredients
-        query_set = query_set.exclude(~Q(made_of__ingredient__diets__id=diet_id))  # exclude recipes that contain at least one ingredient that does NOT match the diet
-
+        query_set = query_set.exclude(recipe_ingredients__isnull=True)  # remove recipes with 0 ingredients
+        query_set = query_set.exclude(~Q(recipe_ingredients__ingredient__diets__id=diet_id))  # excludes recipes that contain at least one ingredients
+        # that does NOT match the diets
         return query_set.distinct()
+
+    # Set of recipes excluding a given allergen (recipes that do not contain ingredients with a given allergen)
+    def recipes_excluding_allergen(cls, allergen_id):
+        qs = cls.objects.all()
+        qs = qs.exclude(recipe_ingredients__isnull=True)  # optional: hide empty recipes
+        qs = qs.exclude(recipe_ingredients__ingredient__allergens__id=allergen_id)
+        return qs.distinct()
 
 
 class RecipeIngredientRelation(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='made_of')
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipe_ingredients')  # recipe.recipe_ingredients.all()
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='ingredient_recipes')  # ingredients.ingredient_recipes.all()
     quantity = models.FloatField()  # how many of the base_units (like 4 bananas)
 
     class Meta:
@@ -110,8 +104,8 @@ class RecipeIngredientRelation(models.Model):
 
     @property
     def calories(self):
-        # Example: banana has 78kcal per 100 grams -> that is its calories_per_one_unit, if we want to add 4 bananas to the recipe we calculate the quantity * calories_per_one_unit
-        return self.quantity * self.ingredient.calories_per_one_unit()
+        # Example: banana has 78kcal per 100 grams -> that is its calories_per_one_unit, if we want to add 4 bananas to the recipes we calculate the quantity * calories_per_one_unit
+        return self.quantity * self.ingredient.calories_per_one_unit
 
 
 class Wishlist(models.Model):
@@ -140,8 +134,8 @@ class PantryItemRelation(models.Model):
     source = models.CharField(max_length=20, choices=Source.choices, default=Source.MANUAL)
 
     class Meta:
-        # a pantry has one stock entry per ingredient (you can't have rows like banana with quantity 3, and banana with quantity 4)
-        unique_together = ('pantry', 'ingredient')
+        # a pantry has one stock entry per ingredients (you can't have rows like banana with quantity 3, and banana with quantity 4)
+        constraints = [models.UniqueConstraint(fields=['pantry', 'ingredient'], name='uniq_pantry_ingredient')]
 
     def __str__(self):
         # display the unit from the Ingredient

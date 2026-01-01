@@ -1,6 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # User
@@ -9,11 +11,10 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
     # Recipes
-    path("recipes/create/", views.recipe_create, name="recipe_create"),
-    path("recipes/<int:pk>/edit/", views.recipe_edit, name="recipe_edit"),
+    path("recipes/", views.recipe_list, name="recipe_list"),
+    path("recipes/add/", views.recipe_add_recipes, name="recipe_add_recipes"),
     path("recipes/<int:pk>/delete/", views.recipe_delete, name="recipe_delete"),
     path("recipes/<int:pk>/", views.recipe_detail, name="recipe_detail"),
-    path("recipes/", views.recipe_list, name="recipe_list"),
 
     # Ingredients
     path("ingredients/", views.ingredient_list, name="ingredient_list"),
@@ -41,4 +42,4 @@ urlpatterns = [
     path('plans/new/', views.daily_plan_create, name='daily_plan_create'),
     path('plans/<int:plan_id>/', views.daily_plan_detail, name='daily_plan_detail'),
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
