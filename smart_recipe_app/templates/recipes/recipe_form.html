@@ -1,0 +1,144 @@
+{% extends 'common/base.html' %}
+
+{% block title %}{% if recipe %}Edit Recipe{% else %}Create Recipe{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        border-bottom: 3px solid #28a745;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+
+    .form-row {
+        margin-bottom: 16px;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-top: 22px;
+    }
+
+    .form-actions .btn {
+        min-width: 150px;
+        padding: 12px 26px;
+        border-radius: 8px;
+    }
+
+    .btn-green {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-green:hover {
+        background: #218838;
+        color: white;
+    }
+
+    .image-preview {
+        max-width: 300px;
+        max-height: 300px;
+        margin-top: 15px;
+        border-radius: 12px;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="form-card">
+        <div class="form-header">
+            <h2>{% if recipe %}Edit Recipe: {{ recipe.name }}{% else %}Create New Recipe{% endif %}</h2>
+        </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-row">
+            <label class="form-label" for="{{ form.name.id_for_label }}">Recipe Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+            <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
+        </div>
+
+        <div class="row form-row">
+            <div class="col-md-6">
+                <label class="form-label" for="{{ form.no_of_servings.id_for_label }}">Number of Servings *</label>
+                {{ form.no_of_servings }}
+                {% if form.no_of_servings.errors %}<div class="text-danger small mt-1">{{ form.no_of_servings.errors }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label" for="{{ form.preparation_time.id_for_label }}">Preparation Time (minutes) *</label>
+                {{ form.preparation_time }}
+                {% if form.preparation_time.errors %}<div class="text-danger small mt-1">{{ form.preparation_time.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <label class="form-label" for="{{ form.image.id_for_label }}">Recipe Image</label>
+            {{ form.image }}
+            {% if form.image.errors %}<div class="text-danger small mt-1">{{ form.image.errors }}</div>{% endif %}
+
+            {% if recipe and recipe.image %}
+                <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="image-preview">
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'recipe_list' %}" class="btn btn-secondary">Cancel</a>
+
+            {% if recipe %}
+                <button type="submit" class="btn btn-green">Save Changes</button>
+            {% else %}
+                <button type="submit" class="btn btn-green">Create & Add Ingredients</button>
+            {% endif %}
+        </div>
+    </form>
+    </div>
+
+</div>
+{% endblock %}

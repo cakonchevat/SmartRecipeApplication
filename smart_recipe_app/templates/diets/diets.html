@@ -1,0 +1,127 @@
+{% extends 'common/base.html' %}
+
+{% block title %}Diets{% endblock %}
+
+{% block extra_css %}
+<style>
+    .items-card {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+        border-left: 6px solid #6f42c1;
+    }
+
+    .btn-purple {
+        background: #6f42c1;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 500;
+    }
+
+    .btn-purple:hover {
+        background: #5a32a0;
+        color: #fff;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .help-text {
+        font-size: 13px;
+        color: #6c757d;
+    }
+
+    .badge-pill {
+        border-radius: 999px;
+        padding: 5px 11px;
+        font-size: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0">Diets</h2>
+        <a href="{% url 'diet_create' %}" class="btn btn-purple">
+            + Add New Diet
+        </a>
+    </div>
+
+    <div class="items-card">
+        {% if diets %}
+            <p class="help-text mb-3">
+                Diets (e.g. Vegan, Vegetarian, Gluten-Free) are used to filter recipes based
+                on their ingredients. A recipe belongs to a diet if all of its ingredients are
+                compatible with that diet.
+            </p>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Ingredients in this diet</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in diets %}
+                            <tr>
+                                <td>
+                                    <strong>{{ d.name }}</strong>
+                                </td>
+                                <td>
+                                    {% with count=d.ingredients.count %}
+                                        {% if count %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle badge-pill">
+                                                {{ count }} ingredient{{ count|pluralize }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted small">No ingredients assigned</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'diet_edit' d.id %}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+                                        <form method="post"
+                                              action="{% url 'diet_delete' d.id %}"
+                                              style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Delete diet {{ d.name }}?');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">
+                    No diets have been defined yet.
+                </p>
+                <a href="{% url 'diet_create' %}" class="btn btn-purple mt-3">
+                    + Create First Diet
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

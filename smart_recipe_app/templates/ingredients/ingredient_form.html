@@ -1,0 +1,246 @@
+{% extends 'common/base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Ingredient{% else %}Create Ingredient{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        border-bottom: 3px solid #0d6efd;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 9px 14px;
+        width: 100%;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .form-actions .btn {
+        min-width: 140px;
+        padding: 11px 26px;
+        border-radius: 8px;
+    }
+
+    .btn-blue {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        padding: 11px 26px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-blue:hover {
+        background: #0b5ed7;
+        color: white;
+    }
+
+    .checkbox-group {
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px 14px;
+        background: #f8f9fa;
+    }
+
+    .help-text {
+        font-size: 13px;
+        color: #6c757d;
+    }
+
+    .errorlist {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .errorlist li {
+        color: #dc3545;
+        font-size: 13px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="form-card">
+        <div class="form-header">
+            <h2 class="mb-0">
+                {% if form.instance.pk %}
+                    Edit Ingredient: {{ form.instance.name }}
+                {% else %}
+                    Create New Ingredient
+                {% endif %}
+            </h2>
+            <p class="help-text mt-2 mb-0">
+                Define how many calories this ingredient has per base amount (e.g. 100&nbsp;g,
+                100&nbsp;ml, 1 piece). This data will be used to calculate recipe calories.
+            </p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            {# Name #}
+            <div class="mb-3">
+                <label class="form-label" for="{{ form.name.id_for_label }}">Name *</label>
+                {{ form.name }}
+                {% if form.name.help_text %}
+                    <div class="help-text">{{ form.name.help_text }}</div>
+                {% endif %}
+                {% if form.name.errors %}
+                    <ul class="errorlist">
+                        {% for e in form.name.errors %}
+                            <li>{{ e }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                {# Base unit #}
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="{{ form.base_unit.id_for_label }}">
+                        Base unit *
+                    </label>
+                    {{ form.base_unit }}
+                    <div class="help-text">
+                        Example: grams (g), milliliters (ml), piece, etc.
+                    </div>
+                    {% if form.base_unit.errors %}
+                        <ul class="errorlist">
+                            {% for e in form.base_unit.errors %}
+                                <li>{{ e }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                {# Base amount #}
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="{{ form.base_amount.id_for_label }}">
+                        Base amount *
+                    </label>
+                    {{ form.base_amount }}
+                    <div class="help-text">
+                        How many units are used for calorie definition (e.g. 100).
+                    </div>
+                    {% if form.base_amount.errors %}
+                        <ul class="errorlist">
+                            {% for e in form.base_amount.errors %}
+                                <li>{{ e }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                {# Calories per base amount #}
+                <div class="col-md-4 mb-3">
+                    <label class="form-label"
+                           for="{{ form.calories_per_base_amount.id_for_label }}">
+                        Calories for base amount *
+                    </label>
+                    {{ form.calories_per_base_amount }}
+                    <div class="help-text">
+                        Example: kcal for those 100 g / 100 ml / 1 piece.
+                    </div>
+                    {% if form.calories_per_base_amount.errors %}
+                        <ul class="errorlist">
+                            {% for e in form.calories_per_base_amount.errors %}
+                                <li>{{ e }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Diets & Allergens #}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Compatible Diets</label>
+                    <div class="checkbox-group">
+                        {{ form.diets }}
+                    </div>
+                    <div class="help-text mt-1">
+                        Select all diets this ingredient is allowed in (e.g. Vegan, Gluten-Free).
+                    </div>
+                    {% if form.diets.errors %}
+                        <ul class="errorlist mt-1">
+                            {% for e in form.diets.errors %}
+                                <li>{{ e }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Allergens</label>
+                    <div class="checkbox-group">
+                        {{ form.allergens }}
+                    </div>
+                    <div class="help-text mt-1">
+                        Mark any allergens this ingredient contains (e.g. Nuts, Lactose).
+                    </div>
+                    {% if form.allergens.errors %}
+                        <ul class="errorlist mt-1">
+                            {% for e in form.allergens.errors %}
+                                <li>{{ e }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% if next %}{{ next }}{% else %}{% url 'ingredient_list' %}{% endif %}"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-blue">
+                    {% if form.instance.pk %}Save Changes{% else %}Create Ingredient{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

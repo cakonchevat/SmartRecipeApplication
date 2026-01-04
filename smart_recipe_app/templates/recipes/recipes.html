@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'common/base.html' %}
 {% load static %}
 
 {% block title %}Recipes{% endblock %}
@@ -13,119 +13,182 @@
         border-left: 6px solid #28a745;
     }
 
-    .modern-table thead tr {
-        background: #28a745;
-        color: white;
+    .recipe-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
     }
 
-    .modern-table thead th {
-        padding: 14px 16px;
-        border: none;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-    .modern-table tbody tr {
-        background: #ffffff;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    .recipe-card {
+        background: white;
         border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
     }
 
-    .modern-table tbody tr td:first-child {
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 12px;
-    }
-
-    .modern-table tbody tr td:last-child {
-        border-top-right-radius: 12px;
-        border-bottom-right-radius: 12px;
-    }
-
-    .modern-table tbody td {
-        padding: 14px 16px;
-        vertical-align: middle;
-        border: none;
-    }
-
-    .modern-table tbody tr:hover {
-        background: #f9fff9;
-        transform: scale(1.01);
-        transition: 0.15s ease;
+    .recipe-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
     .recipe-image-wrap {
-        display: block;
         width: 100%;
-        max-width: 250px;
-        max-height: 250px;
-        margin: 0 auto;     /* center inside card */
-        background: #f2f2f2;
+        height: 200px;
         overflow: hidden;
-        border-radius: 12px;
+        background: #f2f2f2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .recipe-image {
         width: 100%;
         height: 100%;
-        max-height: 500px;  /* ⬅️ hard cap */
-        object-fit: cover; /* crop nicely */
+        object-fit: cover;
+    }
+
+    .recipe-image-placeholder {
+        color: #999;
+        font-size: 14px;
+    }
+
+    .recipe-body {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .recipe-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        text-decoration: none;
+        margin-bottom: 10px;
         display: block;
     }
 
+    .recipe-title:hover {
+        color: #28a745;
+    }
+
+    .recipe-desc {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+        line-height: 1.5;
+        flex: 1;
+    }
+
+    .recipe-desc-muted {
+        font-style: italic;
+        color: #999;
+    }
+
+    .recipe-meta {
+        font-size: 13px;
+        color: #777;
+        margin-bottom: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .recipe-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .recipe-actions .btn {
+        flex: 1;
+    }
+
+    .btn-green {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    }
+
+    .btn-secondary {
+        align-items: center;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-green:hover {
+        background: #218838;
+        color: white;
+    }
+
+    .filter-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-
 <div class="container mt-4">
 
-    <h2 class="mb-4">Recipes</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0">Recipes</h2>
+        <a href="{% url 'recipe_create' %}" class="btn btn-green">
+            + Add New Recipe
+        </a>
+    </div>
 
     <div class="items-card">
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="m-0">Recipes</h3>
+        {# Filter Section #}
+        <div class="filter-section">
+            <form method="get" class="row g-2">
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control" placeholder="Search by name or description"
+                           value="{{ q }}">
+                </div>
 
-            <button class="btn btn-green btn-green-shadow" data-bs-toggle="modal" data-bs-target="#addRecipeModal">
-                + Add new recipe
-            </button>
+                <div class="col-md-3">
+                    <select name="diet_id" class="form-select">
+                        <option value="">All Diets</option>
+                        {% for d in diets %}
+                            <option value="{{ d.id }}" {% if selected_diet_id == d.id|stringformat:"s" %}selected{% endif %}>
+                                {{ d.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="allergen_id" class="form-select">
+                        <option value="">No Allergen Filter</option>
+                        {% for a in allergens %}
+                            <option value="{{ a.id }}" {% if selected_allergen_id == a.id|stringformat:"s" %}selected{% endif %}>
+                                Exclude: {{ a.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button class="btn btn-green w-100" type="submit">Filter</button>
+                    <a class="btn btn-secondary w-100" href="{% url 'recipe_list' %}">Reset</a>
+                </div>
+            </form>
         </div>
 
-        {# Filters row (optional but you already have diet/allergen/q in your view) #}
-        <form method="get" class="row g-2 mb-3">
-            <div class="col-md-4">
-                <input type="text" name="q" class="form-control" placeholder="Search by name/description"
-                       value="{{ q }}">
-            </div>
-
-            <div class="col-md-3">
-                <select name="diet_id" class="form-select">
-                    <option value="">All diets</option>
-                    {% for d in diets %}
-                        <option value="{{ d.id }}" {% if selected_diet_id == d.id|stringformat:"s" %}selected{% endif %}>
-                            {{ d.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <select name="allergen_id" class="form-select">
-                    <option value="">Exclude none</option>
-                    {% for a in allergens %}
-                        <option value="{{ a.id }}" {% if selected_allergen_id == a.id|stringformat:"s" %}selected{% endif %}>
-                            Exclude: {{ a.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="col-md-2 d-flex gap-2">
-                <button class="btn btn-green w-100" type="submit">Filter</button>
-                <a class="btn btn-secondary w-100" href="{% url 'recipe_list' %}">Reset</a>
-            </div>
-        </form>
-
+        {# Recipe Grid #}
         {% if recipes %}
             <div class="recipe-grid">
                 {% for r in recipes %}
@@ -136,7 +199,7 @@
                                 <img src="{{ r.image.url }}" alt="{{ r.name }}" class="recipe-image">
                             {% else %}
                                 <div class="recipe-image-placeholder">
-                                    No image
+                                    No image available
                                 </div>
                             {% endif %}
                         </a>
@@ -147,30 +210,36 @@
                             </a>
 
                             {% if r.description %}
-                                <p class="recipe-desc">{{ r.description }}</p>
+                                <p class="recipe-desc">{{ r.description|truncatewords:20 }}</p>
                             {% else %}
-                                <p class="recipe-desc recipe-desc-muted">No description.</p>
+                                <p class="recipe-desc recipe-desc-muted">No description provided.</p>
                             {% endif %}
 
                             <div class="recipe-meta">
-                                <span>{{ r.no_of_servings }} servings</span>
+                                <span><strong>{{ r.no_of_servings }}</strong> servings</span>
                                 <span>•</span>
-                                <span>{{ r.preparation_time }} min</span>
+                                <span><strong>{{ r.preparation_time }}</strong> min</span>
                                 <span>•</span>
                                 <span>
                                     {% if r.calories_per_serving %}
-                                        {{ r.calories_per_serving|floatformat:0 }} kcal/serving
+                                        <strong>{{ r.calories_per_serving|floatformat:0 }}</strong> kcal/serving
                                     {% else %}
-                                        -
+                                        <em>No calorie info</em>
                                     {% endif %}
                                 </span>
                             </div>
 
                             <div class="recipe-actions">
-                                <form method="post" action="{% url 'recipe_delete' r.id %}">
+                                <a href="{% url 'recipe_detail' r.id %}" class="btn btn-sm btn-outline-success">
+                                    View Details
+                                </a>
+                                <a href="{% url 'recipe_edit' r.id %}" class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+                                <form method="post" action="{% url 'recipe_delete' r.id %}" style="margin: 0;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-danger"
-                                            onclick="return confirm('Are you sure you want to delete this recipe?');">
+                                            onclick="return confirm('Delete {{ r.name }}?');">
                                         Delete
                                     </button>
                                 </form>
@@ -181,80 +250,12 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p>No recipes found.</p>
+            <div class="text-center py-5">
+                <p class="text-muted">No recipes found. Try adjusting your filters or create a new recipe!</p>
+                <a href="{% url 'recipe_create' %}" class="btn btn-green mt-3">+ Create Your First Recipe</a>
+            </div>
         {% endif %}
 
-
     </div>
 </div>
-
-{# Modal #}
-<div class="modal fade" id="addRecipeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title">Add Recipe</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <form method="post" action="{% url 'recipe_add_recipes' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                <div class="modal-body">
-
-                    <h5 class="mb-3">Recipe Information</h5>
-
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        {{ recipe_form.name }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        {{ recipe_form.description }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">No. of servings</label>
-                        {{ recipe_form.no_of_servings }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Preparation time (minutes)</label>
-                        {{ recipe_form.preparation_time }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Image</label>
-                        {{ recipe_form.image }}
-                    </div>
-
-                    <hr>
-
-                    <h5 class="mb-3">First Ingredient</h5>
-
-                    <div class="mb-3">
-                        <label class="form-label">Ingredient</label>
-                        {{ rel_form.ingredient }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Quantity</label>
-                        {{ rel_form.quantity }}
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-green" type="submit">Save</button>
-                </div>
-
-            </form>
-
-        </div>
-    </div>
-</div>
-
 {% endblock %}

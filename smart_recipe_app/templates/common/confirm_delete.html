@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm delete{% endblock %}
+
+{% block extra_css %}
+<style>
+  .confirm-card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+    max-width: 650px;
+    margin: 0 auto;
+    border-left: 6px solid #dc3545;
+  }
+  .confirm-header {
+    border-bottom: 3px solid #dc3545;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  .confirm-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .confirm-text {
+    color: #555;
+    margin: 12px 0 0;
+  }
+  .danger-box {
+    background: #fff5f5;
+    border: 1px solid #f1b0b7;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    color: #842029;
+  }
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .actions .btn {
+    min-width: 140px;
+    padding: 11px 22px;
+    border-radius: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="confirm-card">
+    <div class="confirm-header">
+      <h2 class="confirm-title">Delete {{ object_type }}</h2>
+      <p class="confirm-text">
+        You are about to permanently delete:
+        <strong>{{ object_name }}</strong>
+      </p>
+    </div>
+
+    {% if warning %}
+      <div class="danger-box">
+        <strong>Warning:</strong> {{ warning }}
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="actions">
+        <a href="{{ cancel_url }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-danger">Yes, delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

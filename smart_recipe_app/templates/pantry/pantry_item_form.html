@@ -1,0 +1,246 @@
+{% extends 'common/base.html' %}
+
+{% block title %}
+    {% if item %}Edit Pantry Item{% else %}Add Pantry Item{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        border-bottom: 3px solid #28a745;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+
+    .form-row {
+        margin-bottom: 16px;
+    }
+
+    .help-text {
+        font-size: 13px;
+        color: #666;
+        margin-top: 6px;
+        display: block;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-top: 22px;
+    }
+
+    .form-actions .btn {
+        min-width: 150px;
+        padding: 12px 26px;
+        border-radius: 8px;
+    }
+
+    .btn-green {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-green:hover {
+        background: #218838;
+        color: white;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        border: 1px solid #f5c2c7;
+        border-radius: 10px;
+        padding: 15px;
+        color: #842029;
+        margin-bottom: 20px;
+    }
+
+    .create-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #28a745;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .create-link:hover {
+        color: #218838;
+        text-decoration: underline;
+    }
+
+    .qty-inline{
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .unit-suffix{
+        font-size: 18px;
+        font-weight: 600;
+        color: #666;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="form-card">
+        <div class="form-header">
+            <h2>
+                {% if item %}
+                    Edit Pantry Item: {{ item.ingredient.name }}
+                {% else %}
+                    Add Pantry Item
+                {% endif %}
+            </h2>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-row">
+                <label class="form-label" for="{{ form.ingredient.id_for_label }}">Ingredient *</label>
+                {{ form.ingredient }}
+                {% if form.ingredient.errors %}
+                    <div class="text-danger small mt-1">{{ form.ingredient.errors }}</div>
+                {% endif %}
+
+                <span class="help-text d-flex align-items-center gap-2">
+                    Choose an ingredient to add to your pantry.
+                    <a href="{% url 'ingredient_create' %}?next={{ request.path }}"
+                       class="create-link">
+                        + Create new ingredient
+                    </a>
+                </span>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label" for="{{ form.quantity.id_for_label }}">Quantity *</label>
+
+                <div class="qty-inline">
+                    {{ form.quantity }}
+                    <span id="unit_suffix" class="unit-suffix"></span>
+                </div>
+
+                {% if form.quantity.errors %}
+                    <div class="text-danger small mt-1">{{ form.quantity.errors }}</div>
+                {% endif %}
+
+                <span class="help-text">Uses ingredient base unit</span>
+            </div>
+
+            <div class="form-row">
+                <label class="form-label" for="{{ form.is_opened.id_for_label }}">
+                    Opened
+                </label>
+                <div class="form-check">
+                    {{ form.is_opened }}
+                    <label class="form-check-label ms-2">
+                        Item has been opened
+                    </label>
+                </div>
+            </div>
+
+            <div class="row form-row">
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ form.purchased_at.id_for_label }}">
+                        Purchased at
+                    </label>
+                    {{ form.purchased_at }}
+                    {% if form.purchased_at.errors %}
+                        <div class="text-danger small mt-1">{{ form.purchased_at.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ form.expires_at.id_for_label }}">
+                        Expires at
+                    </label>
+                    {{ form.expires_at }}
+                    {% if form.expires_at.errors %}
+                        <div class="text-danger small mt-1">{{ form.expires_at.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <div class="form-actions">
+                <a href="{% url 'pantry' %}" class="btn btn-secondary">Cancel</a>
+
+                {% if item %}
+                    <button type="submit" class="btn btn-green">Save Changes</button>
+                {% else %}
+                    <button type="submit" class="btn btn-green">Add to Pantry</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const ingredientSelect = document.getElementById('{{ form.ingredient.id_for_label }}');
+    const unitSuffix = document.getElementById('unit_suffix');
+
+    function updateUnit() {
+      if (!ingredientSelect || !unitSuffix) return;
+      const opt = ingredientSelect.selectedOptions && ingredientSelect.selectedOptions[0];
+      unitSuffix.textContent = (opt && opt.dataset && opt.dataset.unit) ? opt.dataset.unit : '';
+    }
+
+    if (ingredientSelect) {
+      ingredientSelect.addEventListener('change', updateUnit);
+      updateUnit();
+    }
+  });
+</script>
+
+{% endblock %}
+
+

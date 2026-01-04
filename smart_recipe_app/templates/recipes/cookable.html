@@ -1,0 +1,70 @@
+{% extends 'common/base.html' %}
+
+{% block title %}Cookable Recipes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .items-card {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0">Recipes You Can Cook Now</h2>
+        <a href="{% url 'pantry' %}" class="btn btn-outline-secondary">
+            View / Edit Pantry
+        </a>
+    </div>
+
+    <div class="items-card">
+        {% if recipes %}
+            <p class="text-muted">
+                These recipes can be cooked with the ingredients currently in your pantry.
+            </p>
+
+            <ul class="list-group mt-3">
+                {% for r in recipes %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="{% url 'recipe_detail' r.id %}">
+                                <strong>{{ r.name }}</strong>
+                            </a>
+                            <div class="small text-muted">
+                                {{ r.preparation_time }} min ·
+                                {% if r.calories_per_serving %}
+                                    {{ r.calories_per_serving|floatformat:0 }} kcal/serving
+                                {% else %}
+                                    No calorie info
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a href="{% url 'recipe_detail' r.id %}"
+                           class="btn btn-sm btn-outline-success">
+                            View
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">
+                    There are no recipes you can fully cook with your current pantry.
+                </p>
+                <p class="small text-muted">
+                    Try adding more items to your pantry or lowering ingredient quantities.
+                </p>
+                <a href="{% url 'pantry' %}" class="btn btn-green mt-3">
+                    Go to Pantry
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import date
-from django.db.models import Q
+from django.db.models import Count, F, Q
 from django.conf import settings
 
 # TODO: Teona's tasks: Recipe, Ingredient, Diet
@@ -13,6 +13,9 @@ class Diet(models.Model):
 
 class Allergen(models.Model):
     name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
 
 class Ingredient(models.Model):
     UNIT_CHOICES = [
@@ -80,13 +83,19 @@ class Recipe(models.Model):
     # Set of recipes for a particular diets, based on their ingredients
     @classmethod
     def recipes_for_diet(cls, diet_id):
-        query_set = cls.objects.all()
-        query_set = query_set.exclude(recipe_ingredients__isnull=True)  # remove recipes with 0 ingredients
-        query_set = query_set.exclude(~Q(recipe_ingredients__ingredient__diets__id=diet_id))  # excludes recipes that contain at least one ingredients
-        # that does NOT match the diets
-        return query_set.distinct()
+        qs = cls.objects.exclude(recipe_ingredients__isnull=True)
+        qs = qs.annotate(
+            ing_count=Count('recipe_ingredients', distinct=True),
+            ing_in_diet=Count(
+                'recipe_ingredients',
+                filter=Q(recipe_ingredients__ingredient__diets__id=diet_id),
+                distinct=True
+            )
+        ).filter(ing_count=F('ing_in_diet'))
+        return qs
 
     # Set of recipes excluding a given allergen (recipes that do not contain ingredients with a given allergen)
+    @classmethod
     def recipes_excluding_allergen(cls, allergen_id):
         qs = cls.objects.all()
         qs = qs.exclude(recipe_ingredients__isnull=True)  # optional: hide empty recipes
@@ -133,6 +142,10 @@ class PantryItemRelation(models.Model):
     quantity = models.FloatField()
     source = models.CharField(max_length=20, choices=Source.choices, default=Source.MANUAL)
 
+    purchased_at = models.DateField(null=True, blank=True)
+    expires_at = models.DateField(null=True, blank=True)
+    is_opened = models.BooleanField(default=False)
+
     class Meta:
         # a pantry has one stock entry per ingredients (you can't have rows like banana with quantity 3, and banana with quantity 4)
         constraints = [models.UniqueConstraint(fields=['pantry', 'ingredient'], name='uniq_pantry_ingredient')]
@@ -157,7 +170,7 @@ class DailyPlan(models.Model):
 
     @property
     def total_calories(self):
-        return sum(r.total_calories for r in self.recipes.all())
+        return sum((r.calories_per_serving or 0) for r in self.recipes.all())
 
     @property
     def remaining_calories(self):
