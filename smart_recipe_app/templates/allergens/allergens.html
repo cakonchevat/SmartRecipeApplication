@@ -93,16 +93,7 @@
                                            class="btn btn-sm btn-outline-primary">
                                             Edit
                                         </a>
-                                        <form method="post"
-                                              action="{% url 'allergen_delete' a.id %}"
-                                              style="display:inline;">
-                                            {% csrf_token %}
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Delete allergen {{ a.name }}? This may affect filtering of recipes.');">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        <a href="{% url 'allergen_delete' a.id %}" class="btn btn-danger btn-sm">Delete</a>
                                     </div>
                                 </td>
                             </tr>

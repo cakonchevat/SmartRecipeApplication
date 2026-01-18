@@ -94,16 +94,7 @@
                                            class="btn btn-sm btn-outline-primary">
                                             Edit
                                         </a>
-                                        <form method="post"
-                                              action="{% url 'diet_delete' d.id %}"
-                                              style="display:inline;">
-                                            {% csrf_token %}
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Delete diet {{ d.name }}?');">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        <a href="{% url 'recipe_delete' d.id %}" class="btn btn-danger btn-sm">Delete</a>
                                     </div>
                                 </td>
                             </tr>

@@ -1,0 +1,34 @@
+{% extends "common/base.html" %}
+
+{% block title %}Scan Your Pantry{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Scan Your Pantry</h2>
+    <p>Upload a photo of your fridge or pantry to automatically detect ingredients.</p>
+
+    <form method="post" enctype="multipart/form-data" class="mt-4">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            <pre style="margin:0;">{{ form.errors }}</pre>
+          </div>
+        {% endif %}
+
+        <div class="mb-3">
+            {{ form.image.label_tag }}
+            {{ form.image }}
+            {% if form.image.errors %}
+                <div class="text-danger">{{ form.image.errors }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload &amp; Scan</button>
+        <a href="{% url 'pantry' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

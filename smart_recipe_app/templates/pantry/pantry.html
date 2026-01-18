@@ -95,9 +95,14 @@
     {# HEADER – FIRST ADD BUTTON #}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="m-0">My Pantry</h2>
-        <a href="{% url 'pantry_add_item' %}" class="btn btn-green">
-            + Add Pantry Item
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'pantry_scan' %}" class="btn btn-outline-success">
+                📷 Scan Pantry
+            </a>
+            <a href="{% url 'pantry_add_item' %}" class="btn btn-green">
+                + Add Pantry Item
+            </a>
+        </div>
     </div>
 
     <div class="items-card">
@@ -176,16 +181,10 @@
                                         Edit
                                     </a>
 
-                                    <form method="post"
-                                          action="{% url 'pantry_delete_item' item.id %}"
-                                          style="display:inline-block; margin:0;">
-                                        {% csrf_token %}
-                                        <button type="submit"
-                                                class="btn btn-sm btn-danger"
-                                                onclick="return confirm('Remove {{ item.ingredient.name }}?');">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    <a href="{% url 'pantry_delete_item' item.id %}"
+                                       class="btn btn-sm btn-danger">
+                                        Delete
+                                    </a>
                                 </td>
                             </tr>
                         {% endfor %}

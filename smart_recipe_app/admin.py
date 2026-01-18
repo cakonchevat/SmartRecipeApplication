@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.db.models import Count
-from smart_recipe_app.models import Diet, Allergen, Ingredient, IngredientDietRelation, Recipe, RecipeIngredientRelation, PantryItemRelation, Pantry, Wishlist
+from smart_recipe_app.models import Diet, Allergen, Ingredient, IngredientDietRelation, Recipe, \
+    RecipeIngredientRelation, PantryItemRelation, Pantry, Wishlist, PantryScan, PantryScanDetection
+
+
 # Register your models here.
 
 # Diet
@@ -28,10 +31,10 @@ class IngredientAdmin(admin.ModelAdmin):
         return qs.prefetch_related('diets', 'allergens')
 
     def diets_list(self, obj):
-        return ", ".join(d.name for d in obj.diets.all())
+        return ", ".join(obj.diets.values_list("name", flat=True))
 
     def allergens_list(self, obj):
-        return ", ".join(a.name for a in obj.allergens.all())
+        return ", ".join(obj.allergens.values_list("name", flat=True))
 
     diets_list.short_description = "Diets"
     allergens_list.short_description = "Allergens"
@@ -98,3 +101,32 @@ class PantryItemAdmin(admin.ModelAdmin):
 class WishlistAdmin(admin.ModelAdmin):
     list_display = ('user',)
     filter_horizontal = ('recipes',)
+
+# ML model
+class PantryScanDetectionInline(admin.TabularInline):
+    model = PantryScanDetection
+    extra = 0
+    fields = ("label", "confidence", "status", "matched_ingredient", "quantity_guess")
+    readonly_fields = ("label", "confidence")
+    raw_id_fields = ("matched_ingredient",)
+
+@admin.register(PantryScan)
+class PantryScanAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "status", "created_at", "processed_at", "ingredients_added_count")
+    list_filter = ("status",)
+    readonly_fields = ("created_at", "processed_at", "raw_output", "error_message")
+    inlines = [PantryScanDetectionInline]
+    raw_id_fields = ("user",)
+
+@admin.register(PantryScanDetection)
+class PantryScanDetectionAdmin(admin.ModelAdmin):
+    list_display = ("scan", "label", "confidence_percent", "status", "matched_ingredient")
+    ordering = ("-confidence",)
+
+    def confidence_percent(self, obj):
+        return f"{obj.confidence * 100:.1f}%"
+
+    confidence_percent.short_description = "Confidence"
+    confidence_percent.admin_order_field = "confidence"
+    list_filter = ("status",)
+    search_fields = ("label", "matched_ingredient__name")

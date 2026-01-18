@@ -32,10 +32,17 @@ urlpatterns = [
     path("recipes/", views.recipe_list, name="recipe_list"),
     path("recipes/create/", views.recipe_create, name="recipe_create"),
     path("recipes/<int:pk>/", views.recipe_detail, name="recipe_detail"),
+
+    path("recipes/<int:pk>/wishlist-toggle/", views.toggle_wishlist, name="toggle_wishlist"),
+    path("recipes/<int:pk>/add-to-today-plan/", views.add_recipe_to_today_plan, name="add_recipe_to_today_plan"),
+
     path("recipes/<int:pk>/edit/", views.recipe_edit, name="recipe_edit"),
     path("recipes/<int:pk>/edit-ingredients/", views.recipe_edit_ingredients, name="recipe_edit_ingredients"),
     path("recipes/<int:pk>/remove-ingredient/<int:relation_id>/", views.recipe_remove_ingredient, name="recipe_remove_ingredient"),
     path("recipes/<int:pk>/delete/", views.recipe_delete, name="recipe_delete"),
+
+    path("recipes/<int:pk>/wishlist-toggle/", views.toggle_wishlist, name="toggle_wishlist"),
+    path("recipes/<int:pk>/add-to-today/", views.add_recipe_to_today_plan, name="add_recipe_to_today_plan"),
 
     # Pantry
     path('pantry/', views.pantry_list, name='pantry'),
@@ -54,5 +61,10 @@ urlpatterns = [
     # Urls for service-implemented views
     path('plans/suggest/', views.suggest_daily_plan, name='suggest_daily_plan'),
     path('recipes/cookable/', views.cookable_recipes, name='cookable_recipes'),
+
+    # Pantry scan URLs
+    path("pantry/scan/", views.pantry_scan_create, name="pantry_scan"),
+    path("pantry/scan/<int:scan_id>/processing/", views.pantry_scan_processing, name="pantry_scan_processing"),
+    path("pantry/scan/<int:scan_id>/review/", views.pantry_scan_review, name="pantry_scan_review"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

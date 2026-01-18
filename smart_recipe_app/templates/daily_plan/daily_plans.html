@@ -1,42 +1,133 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Daily plans</title>
-</head>
-<body>
+{% extends "common/base.html" %}
+{% load static %}
 
-<h2>Your daily plans</h2>
+{% block title %}My Daily Plans{% endblock %}
 
-<p>
-    <a href="{% url 'daily_plan_create' %}">Create new plan</a>
-</p>
+{% block extra_css %}
+<style>
+  .items-card{
+    background:#fff;
+    padding:25px 30px;
+    border-radius:16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.10);
+    border-left:6px solid #6f42c1;
+  }
+  .btn-purple{
+    background:#6f42c1;
+    color:#fff;
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    font-weight:500;
+  }
+  .btn-purple:hover{ background:#5a35a0; color:#fff; }
+  .filter-section{
+    background:#f8f9fa;
+    padding:18px 20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    color:#666;
+    font-size:14px;
+  }
+  .modern-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+  }
+  .modern-table thead th{
+    background:#f1f3f5;
+    padding:14px 16px;
+    font-weight:600;
+    font-size:14px;
+    border-bottom:1px solid #e5e7eb;
+  }
+  .modern-table tbody td{
+    padding:14px 16px;
+    font-size:14px;
+    border-bottom:1px solid #f0f0f0;
+    vertical-align:middle;
+  }
+  .modern-table tbody tr:hover td{ background:#fbfbfb; }
+  .actions-col{
+    width:160px;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .empty-state{ text-align:center; padding:50px 0; }
+  .kpi{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:#f8f9fa;
+    border:1px solid #e9ecef;
+    padding:6px 10px;
+    border-radius:999px;
+    font-weight:600;
+  }
+</style>
+{% endblock %}
 
-{% if plans %}
-<table border="1" cellpadding="5">
-    <tr>
-        <th>Date</th>
-        <th>Wanted calories</th>
-        <th>Total calories</th>
-        <th>Remaining calories</th>
-        <th>Actions</th>
-    </tr>
-    {% for plan in plans %}
-        <tr>
-            <td>{{ plan.date }}</td>
-            <td>{{ plan.wanted_calories }}</td>
-            <td>{{ plan.total_calories }}</td>
-            <td>{{ plan.remaining_calories }}</td>
-            <td>
-                <a href="{% url 'daily_plan_detail' plan.id %}">View</a>
-            </td>
-        </tr>
-    {% endfor %}
-</table>
-{% else %}
-<p>You don't have any daily plans yet.</p>
-{% endif %}
+{% block content %}
+<div class="container mt-4">
 
-<p><a href="{% url 'index' %}">Back to home</a></p>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">My Daily Plans</h2>
+    <a href="{% url 'daily_plan_create' %}" class="btn btn-purple">+ Create Plan</a>
+  </div>
 
-</body>
-</html>
+  <div class="items-card">
+
+    <div class="filter-section">
+      {% if plans %}
+        You have <strong>{{ plans|length }}</strong> plan{{ plans|length|pluralize }}.
+      {% else %}
+        You don’t have any daily plans yet.
+      {% endif %}
+    </div>
+
+    {% if plans %}
+      <div class="table-responsive">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Wanted</th>
+              <th>Total</th>
+              <th>Remaining</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for plan in plans %}
+              <tr>
+                <td><strong>{{ plan.date|date:"d M Y" }}</strong></td>
+                <td><span class="kpi">{{ plan.wanted_calories }} kcal</span></td>
+                <td><span class="kpi">{{ plan.total_calories }} kcal</span></td>
+                <td>
+                  {% if plan.remaining_calories < 0 %}
+                    <span class="badge bg-danger">Over by {{ plan.remaining_calories|floatformat:0|slice:"1:" }} kcal</span>
+                  {% else %}
+                    <span class="badge bg-success">Left {{ plan.remaining_calories }} kcal</span>
+                  {% endif %}
+                </td>
+                <td class="actions-col">
+                  <a href="{% url 'daily_plan_detail' plan.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p class="text-muted">No plans yet. Create your first daily plan.</p>
+        <a href="{% url 'daily_plan_create' %}" class="btn btn-purple mt-2">+ Create First Plan</a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

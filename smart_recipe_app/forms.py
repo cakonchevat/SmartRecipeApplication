@@ -1,4 +1,3 @@
-from django import forms
 from .models import *
 from django import forms
 
@@ -23,13 +22,33 @@ class DietForm(forms.ModelForm):
         fields = ['name']
 
 class IngredientForm(forms.ModelForm):
+    diets = forms.ModelMultipleChoiceField(
+        queryset=Diet.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple()
+    )
+
     class Meta:
         model = Ingredient
         fields = ['name', 'base_unit', 'base_amount', 'calories_per_base_amount', 'allergens', 'diets']
         widgets = {
             'allergens': forms.CheckboxSelectMultiple(),
-            'diets': forms.CheckboxSelectMultiple(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # preselect diets when editing
+        if self.instance and self.instance.pk:
+            self.fields['diets'].initial = self.instance.diets.all()
+
+    def save(self, commit=True):
+        ingredient = super().save(commit=commit)
+
+        if ingredient.pk:  # only after it exists
+            ingredient.diets.clear()
+            ingredient.diets.add(*self.cleaned_data.get('diets', []))
+
+        return ingredient
 
 class RecipeForm(forms.ModelForm):
     class Meta:
@@ -47,6 +66,12 @@ class RecipeIngredientRelationForm(forms.ModelForm):
             'ingredient': IngredientSelectWithUnit(attrs={'class': 'ingredient-select'}),
         }
 
+    def clean_quantity(self):
+        q = self.cleaned_data['quantity']
+        if q <= 0:
+            raise forms.ValidationError("Quantity must be greater than 0.")
+        return q
+
 class PantryItemForm(forms.ModelForm):
     class Meta:
         model = PantryItemRelation
@@ -57,11 +82,23 @@ class PantryItemForm(forms.ModelForm):
             'expires_at': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def clean_quantity(self):
+        q = self.cleaned_data['quantity']
+        if q <= 0:
+            raise forms.ValidationError("Quantity must be greater than 0.")
+        return q
+
 class DailyPlanForm(forms.ModelForm):
     class Meta:
         model = DailyPlan
-        fields = ['date', 'wanted_calories', 'recipes']
+        fields = ['date', 'wanted_calories']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
-            'recipes': forms.CheckboxSelectMultiple(),
         }
+
+
+# ML model
+class PantryScanForm(forms.ModelForm):
+    class Meta:
+        model = PantryScan
+        fields = ['image']

@@ -1,40 +1,145 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Daily plan {{ plan.date }}</title>
-</head>
-<body>
+{% extends "common/base.html" %}
 
-<h2>Plan for {{ plan.date }}</h2>
+{% block title %}Daily Plan{% endblock %}
 
-<p>
-    Wanted calories: <strong>{{ plan.wanted_calories }}</strong><br>
-    Total calories from recipes: <strong>{{ plan.total_calories }}</strong><br>
-    Remaining calories: 
-    <strong>
-        {{ plan.remaining_calories }}
-    </strong>
-</p>
+{% block extra_css %}
+<style>
+  .detail-card{
+    background:#fff;
+    padding:30px;
+    border-radius:16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.10);
+    border-left:6px solid #6f42c1;
+  }
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:14px;
+    margin:18px 0 26px;
+  }
+  .kpi-box{
+    background:#f8f9fa;
+    border:1px solid #e9ecef;
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+  }
+  .kpi-label{
+    font-size:12px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:#666;
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .kpi-value{
+    font-size:22px;
+    font-weight:800;
+    color:#212529;
+  }
+  .items-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+  }
+  .items-table thead th{
+    background:#f1f3f5;
+    padding:14px 16px;
+    font-weight:600;
+    font-size:14px;
+    border-bottom:1px solid #e5e7eb;
+  }
+  .items-table tbody td{
+    padding:14px 16px;
+    font-size:14px;
+    border-bottom:1px solid #f0f0f0;
+    vertical-align:middle;
+  }
+  .items-table tbody tr:hover td{ background:#fbfbfb; }
+  .actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:18px;
+  }
+</style>
+{% endblock %}
 
-<h3>Recipes in this plan</h3>
+{% block content %}
+<div class="container mt-4 mb-5">
 
-{% if plan.recipes.all %}
-    <ul>
-        {% for recipe in plan.recipes.all %}
-            <li>
-                {{ recipe.name }} –
-                total: {{ recipe.total_calories }} kcal
-                (per serving: {{ recipe.calories_per_serving|floatformat:0 }} kcal)
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No recipes selected for this plan.</p>
-{% endif %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">Plan for {{ plan.date|date:"d M Y" }}</h2>
+    <a href="{% url 'daily_plans' %}" class="btn btn-outline-secondary">Back</a>
+  </div>
 
-<p>
-    <a href="{% url 'daily_plans' %}">Back to all plans</a>
-</p>
+  <div class="detail-card">
 
-</body>
-</html>
+    <div class="kpi-grid">
+      <div class="kpi-box">
+        <div class="kpi-label">Wanted</div>
+        <div class="kpi-value">{{ plan.wanted_calories }} kcal</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Total</div>
+        <div class="kpi-value">{{ plan.total_calories }} kcal</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Remaining</div>
+        <div class="kpi-value">
+          {% if plan.remaining_calories < 0 %}
+            <span class="text-danger">{{ plan.remaining_calories }} kcal</span>
+          {% else %}
+            <span class="text-success">{{ plan.remaining_calories }} kcal</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <h4 class="mb-3">Recipes in this plan</h4>
+
+    {% if plan.recipes.all %}
+      <div class="table-responsive">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Recipe</th>
+              <th>Total calories</th>
+              <th>Per serving</th>
+              <th class="text-end">Open</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for recipe in plan.recipes.all %}
+              <tr>
+                <td><strong>{{ recipe.name }}</strong></td>
+                <td>{{ recipe.total_calories|floatformat:0 }} kcal</td>
+                <td>
+                  {% if recipe.calories_per_serving %}
+                    {{ recipe.calories_per_serving|floatformat:0 }} kcal
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-success" href="{% url 'recipe_detail' recipe.id %}">View</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-4">
+        <p class="text-muted mb-1">No recipes selected for this plan.</p>
+        <p class="small text-muted">Go to a recipe and add it to today’s plan.</p>
+        <a href="{% url 'recipe_list' %}" class="btn btn-green mt-2">Browse Recipes</a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

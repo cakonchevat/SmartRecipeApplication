@@ -1,59 +1,160 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Wishlist</title>
-</head>
-<body>
-<h2>{{ request.user.username }}'s wishlist</h2>
+{% extends "common/base.html" %}
 
-<p>
-    <a href="{% url 'index' %}">Back to home</a> |
-    <a href="{% url 'pantry' %}">Go to pantry</a>
-</p>
+{% block title %}My Wishlist{% endblock %}
 
-<h3>Recipes in your wishlist</h3>
+{% block extra_css %}
+<style>
+    .items-card {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+        border-left: 6px solid #dc3545;
+    }
 
-{% if wishlist_recipes %}
-    <ul>
-        {% for recipe in wishlist_recipes %}
-            <li>
-                {{ recipe.name }}
-                <form method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-                    <button type="submit" name="remove">Remove</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>Your wishlist is empty.</p>
-{% endif %}
+    .wishlist-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
 
-<hr>
+    .wishlist-item {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
 
-<h3>All recipes (add to wishlist)</h3>
+    .wishlist-title {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
 
-{% if all_recipes %}
-    <ul>
-        {% for recipe in all_recipes %}
-            <li>
-                {{ recipe.name }}
-                {% if recipe in wishlist_recipes %}
-                    (already in wishlist)
-                {% else %}
-                    <form method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-                        <button type="submit" name="add">Add to wishlist</button>
-                    </form>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No recipes yet.</p>
-{% endif %}
+    .wishlist-meta {
+        font-size: 13px;
+        color: #777;
+    }
 
-</body>
-</html>
+    .wishlist-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .wishlist-left {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+    }
+
+    .wishlist-thumb {
+        width: 72px;
+        height: 72px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: #f2f2f2;
+        flex: 0 0 72px;
+    }
+
+    .wishlist-thumb-placeholder {
+        width: 72px;
+        height: 72px;
+        border-radius: 12px;
+        background: #f2f2f2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 12px;
+        flex: 0 0 72px;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0">My Wishlist</h2>
+        <a href="{% url 'recipe_list' %}" class="btn btn-outline-secondary">
+            Browse Recipes
+        </a>
+    </div>
+
+    <div class="items-card">
+
+        {% if wishlist_recipes %}
+            <p class="text-muted mb-3">
+                Recipes you’ve saved to cook later.
+            </p>
+
+            <ul class="wishlist-list">
+                {% for recipe in wishlist_recipes %}
+                    <li class="wishlist-item">
+
+                        <div class="wishlist-left">
+                            {% if recipe.image %}
+                                <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="wishlist-thumb">
+                            {% else %}
+                                <div class="wishlist-thumb-placeholder">No image</div>
+                            {% endif %}
+
+                            <div>
+                                <div class="wishlist-title">
+                                    {{ recipe.name }}
+                                </div>
+                                <div class="wishlist-meta">
+                                    {{ recipe.preparation_time }} min ·
+                                    {% if recipe.calories_per_serving %}
+                                        {{ recipe.calories_per_serving|floatformat:0 }} kcal/serving
+                                    {% else %}
+                                        No calorie info
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wishlist-actions">
+                            <a href="{% url 'recipe_detail' recipe.id %}"
+                               class="btn btn-sm btn-outline-success">
+                                View
+                            </a>
+
+                            <form method="post" style="margin:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                                <button type="submit"
+                                        name="remove"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Remove {{ recipe.name }} from wishlist?');">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+
+                    </li>
+                {% endfor %}
+            </ul>
+
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">
+                    Your wishlist is empty.
+                </p>
+                <p class="small text-muted">
+                    Save recipes you like by clicking the heart icon.
+                </p>
+                <a href="{% url 'recipe_list' %}" class="btn btn-green mt-3">
+                    Browse Recipes
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

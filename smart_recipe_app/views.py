@@ -1,12 +1,15 @@
-from datetime import date
+from django.utils.safestring import mark_safe
 
+from smart_recipe_app.services import process_pantry_scan
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
-from smart_recipe_app.forms import DietForm, IngredientForm, RecipeForm, RecipeIngredientRelationForm, DailyPlanForm, PantryItemForm, AllergenForm
-from smart_recipe_app.models import Diet, RecipeIngredientRelation, Pantry, PantryItemRelation, Wishlist, Recipe, DailyPlan, Ingredient, Allergen
+from smart_recipe_app.forms import *
+from smart_recipe_app.models import *
 from django.db.models import Q
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 
 def register(request):
@@ -66,6 +69,7 @@ def allergen_delete(request, pk):
 
     if request.method == "POST":
         allergen.delete()
+        messages.success(request, "Allergen deleted.")
         return redirect("allergen_list")
 
     return render(request, "common/confirm_delete.html", {
@@ -114,6 +118,7 @@ def diet_delete(request, pk):
 
     if request.method == "POST":
         diet.delete()
+        messages.success(request, "Diet deleted.")
         return redirect("diet_list")
 
     return render(request, "common/confirm_delete.html", {
@@ -170,13 +175,14 @@ def ingredient_delete(request, pk):
 
     if request.method == "POST":
         ingredient.delete()
+        messages.success(request, "Ingredient deleted.")
         return redirect("ingredient_list")
 
     return render(request, "common/confirm_delete.html", {
         "object_type": "Ingredient",
         "object_name": ingredient.name,
         "warning": "This may affect recipes and pantry items that use this ingredient.",
-        "cancel_url":  reverse("ingredient_list"),
+        "cancel_url": reverse("ingredient_list"),
     })
 
 
@@ -204,6 +210,9 @@ def recipe_list(request):
     diets = Diet.objects.all().order_by("name")
     allergens = Allergen.objects.all().order_by("name")
 
+    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+    wishlist_recipe_ids = set(wishlist.recipes.values_list("id", flat=True))
+
     return render(request, "recipes/recipes.html", {
         "recipes": qs,
         "diets": diets,
@@ -211,6 +220,7 @@ def recipe_list(request):
         "selected_diet_id": diet_id,
         "selected_allergen_id": allergen_id,
         "q": q or "",
+        "wishlist_recipe_ids": wishlist_recipe_ids,
     })
 
 
@@ -237,7 +247,6 @@ def recipe_create(request):
     return render(request, "recipes/recipe_form.html", {"form": form})
 
 
-@login_required
 @login_required
 def recipe_edit(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
@@ -267,8 +276,6 @@ def recipe_edit(request, pk):
         "ingredient_form": ingredient_form,
         "relations": relations,
     })
-
-
 
 @login_required
 def recipe_edit_ingredients(request, pk):
@@ -314,13 +321,72 @@ def recipe_remove_ingredient(request, pk, relation_id):
     })
 
 
-
 @login_required
 def recipe_delete(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
+
     if request.method == "POST":
         recipe.delete()
-    return redirect("recipe_list")
+        messages.success(request, "Recipe deleted.")
+        return redirect("recipe_list")
+
+    return render(request, "common/confirm_delete.html", {
+        "object_type": "Recipe",
+        "object_name": recipe.name,
+        "warning": "Deleting this recipe will also remove its ingredient relations.",
+        "cancel_url": reverse("recipe_detail", args=[pk]),
+    })
+
+
+@login_required
+@require_POST
+def toggle_wishlist(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+
+    if wishlist.recipes.filter(pk=recipe.pk).exists():
+        wishlist.recipes.remove(recipe)
+        messages.success(request, mark_safe(
+            f"Removed from wishlist. "
+            f"<a href='{reverse('wishlist')}' class='btn btn-sm btn-outline-secondary ms-2'>See wishlist</a>"
+        ))
+    else:
+        wishlist.recipes.add(recipe)
+        messages.success(request, mark_safe(
+            f"Added to wishlist. "
+            f"<a href='{reverse('wishlist')}' class='btn btn-sm btn-outline-secondary ms-2'>See wishlist</a>"
+        ))
+
+    return redirect(request.META.get("HTTP_REFERER", reverse("recipe_list")))
+
+@login_required
+@require_POST
+def add_recipe_to_today_plan(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+
+    plan, _ = DailyPlan.objects.get_or_create(
+        user=request.user,
+        date=date.today(),
+        defaults={"wanted_calories": 2000}
+    )
+    plan.recipes.add(recipe)
+
+    messages.success(request, "Added to today's plan.")
+    return redirect(request.META.get("HTTP_REFERER", reverse("recipe_list")))
+
+@login_required
+@require_POST
+def add_recipe_to_today_plan(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+
+    plan, _ = DailyPlan.objects.get_or_create(
+        user=request.user,
+        date=date.today(),
+        defaults={"wanted_calories": 2000}
+    )
+    plan.recipes.add(recipe)
+    messages.success(request, "Added to today's plan.")
+    return redirect("recipe_detail", pk=pk)
 
 
 # ===== PANTRY VIEWS =====
@@ -410,24 +476,29 @@ def pantry_delete_item(request, item_id):
 def wishlist_view(request):
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
-    if request.method == 'POST':
-        recipe_id = request.POST.get('recipe_id')
+    if request.method == "POST":
+        recipe_id = request.POST.get("recipe_id")
         recipe = get_object_or_404(Recipe, id=recipe_id)
 
-        if 'add' in request.POST:
+        if "add" in request.POST:
             wishlist.recipes.add(recipe)
-        elif 'remove' in request.POST:
+            messages.success(request, "Added to wishlist.")
+        elif "remove" in request.POST:
             wishlist.recipes.remove(recipe)
+            messages.success(request, "Removed from wishlist.")
 
-        return redirect('wishlist')
+        return redirect("wishlist")
 
-    wishlist_recipes = wishlist.recipes.all()
-    all_recipes = Recipe.objects.all()
+    wishlist_recipes = wishlist.recipes.all().order_by("name")
+    all_recipes = Recipe.objects.all().order_by("name")
 
-    return render(request, 'wishlist/wishlist.html', {
-        'wishlist': wishlist,
-        'wishlist_recipes': wishlist_recipes,
-        'all_recipes': all_recipes,
+    wishlist_recipe_ids = set(wishlist_recipes.values_list("id", flat=True))
+
+    return render(request, "wishlist/wishlist.html", {
+        "wishlist": wishlist,
+        "wishlist_recipes": wishlist_recipes,
+        "all_recipes": all_recipes,
+        "wishlist_recipe_ids": wishlist_recipe_ids,
     })
 
 
@@ -452,7 +523,6 @@ def daily_plan_create(request):
             plan = form.save(commit=False)
             plan.user = request.user
             plan.save()
-            form.save_m2m()
             return redirect('daily_plan_detail', plan_id=plan.id)
     else:
         form = DailyPlanForm()
@@ -509,3 +579,107 @@ def cookable_recipes(request):
     return render(request, 'recipes/cookable.html', {
         'recipes': cookable,
     })
+
+# ML model
+@login_required
+def pantry_scan_create(request):
+    if request.method == "POST":
+        form = PantryScanForm(request.POST, request.FILES)
+        if form.is_valid():
+            scan = form.save(commit=False)
+            scan.user = request.user
+            scan.status = PantryScan.Status.PROCESSING
+            scan.save()
+
+            return redirect("pantry_scan_processing", scan_id=scan.id)
+        else:
+            messages.error(request, "Upload failed. Please choose an image file.")
+    else:
+        form = PantryScanForm()
+
+    return render(request, "pantry/ml_model/pantry_scan_upload.html", {"form": form})
+
+@login_required
+def pantry_scan_review(request, scan_id):
+    scan = get_object_or_404(PantryScan, id=scan_id, user=request.user)
+    detections = scan.detections.all()
+
+    if request.method == "POST":
+        pantry = _get_user_pantry(request.user)
+
+        for d in detections:
+            action = request.POST.get(f"action_{d.id}")  # "accept" / "reject"
+
+            qty_str = request.POST.get(f"quantity_{d.id}")
+            try:
+                qty = int(qty_str) if qty_str else 1
+            except ValueError:
+                qty = 1
+            qty = max(1, qty)
+
+            if action == "accept":
+                label = (d.label or "").strip().lower()
+                if not label:
+                    d.status = PantryScanDetection.ReviewStatus.REJECTED
+                    d.save(update_fields=["status"])
+                    continue
+
+                # 1) find existing ingredient by name (case-insensitive)
+                ingredient = Ingredient.objects.filter(name__iexact=label).first()
+
+                # 2) if not found -> create it with safe defaults
+                if ingredient is None:
+                    ingredient = Ingredient.objects.create(
+                        name=label,
+                        base_unit="pcs",               # <-- change if you want (e.g. "g")
+                        base_amount=1,
+                        calories_per_base_amount=0
+                    )
+
+                # 3) add/update pantry relation
+                obj, created = PantryItemRelation.objects.get_or_create(
+                    pantry=pantry,
+                    ingredient=ingredient,
+                    defaults={"quantity": qty, "source": PantryItemRelation.Source.ML_SCAN},
+                )
+                if not created:
+                    obj.quantity += qty
+                    obj.source = PantryItemRelation.Source.ML_SCAN
+                    obj.save(update_fields=["quantity", "source"])
+
+                # 4) mark detection as accepted + matched ingredient
+                d.matched_ingredient = ingredient
+                d.status = PantryScanDetection.ReviewStatus.ACCEPTED
+                d.save(update_fields=["matched_ingredient", "status"])
+
+            else:
+                d.status = PantryScanDetection.ReviewStatus.REJECTED
+                d.save(update_fields=["status"])
+
+        return redirect("pantry")
+
+    return render(request, "pantry/ml_model/pantry_scan_review.html", {
+        "scan": scan,
+        "detections": detections,
+    })
+
+@login_required
+def pantry_scan_processing(request, scan_id):
+    scan = get_object_or_404(PantryScan, id=scan_id, user=request.user)
+
+    # If already done/failed, jump away
+    if scan.status == PantryScan.Status.DONE:
+        return redirect("pantry_scan_review", scan_id=scan.id)
+
+    if scan.status == PantryScan.Status.FAILED:
+        messages.error(request, f"Scan failed: {scan.error_message}")
+        return redirect("pantry_scan")
+
+    # RUN THE SCAN NOW (SYNC)
+    process_pantry_scan(scan)
+
+    if scan.status == PantryScan.Status.FAILED:
+        messages.error(request, f"Scan failed: {scan.error_message}")
+        return redirect("pantry_scan")
+
+    return redirect("pantry_scan_review", scan_id=scan.id)

@@ -144,10 +144,6 @@
         border-bottom: none;
     }
 
-    .ingredients-table tbody tr {
-        transition: background-color 0.2s;
-    }
-
     .ingredients-table tbody tr:hover {
         background: #f8fdf9;
     }
@@ -178,24 +174,6 @@
         box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
     }
 
-    .btn-outline-primary,
-    .btn-secondary,
-    .btn-danger {
-        padding: 10px 24px;
-        border-radius: 8px;
-        transition: all 0.2s;
-    }
-
-    .btn-outline-primary:hover,
-    .btn-secondary:hover {
-        transform: translateY(-1px);
-    }
-
-    .btn-danger:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-    }
-
     .action-buttons {
         display: flex;
         gap: 12px;
@@ -203,14 +181,7 @@
         padding-top: 30px;
         border-top: 2px solid #f0f0f0;
         margin-top: 35px;
-    }
-
-    .alert-warning {
-        background: #fff3cd;
-        border: 1px solid #ffc107;
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 15px;
+        flex-wrap: wrap;
     }
 
     .no-image-placeholder {
@@ -226,51 +197,62 @@
         margin-bottom: 30px;
     }
 
-    @media (max-width: 768px) {
-        .recipe-header .d-flex {
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .recipe-title {
-            font-size: 2rem;
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .action-buttons {
-            flex-direction: column;
-        }
-
-        .action-buttons .btn {
-            width: 100%;
-        }
+    .wishlist-btn {
+        border: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 10px;
+        padding: 10px 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .wishlist-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.10);
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4 mb-5">
-
     <div class="detail-card">
 
         <div class="recipe-header">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                 <div style="flex: 1;">
                     <h1 class="recipe-title">{{ recipe.name }}</h1>
                     {% if recipe.description %}
                         <p class="recipe-description">{{ recipe.description }}</p>
                     {% endif %}
                 </div>
-                <div class="d-flex gap-2">
+
+                <div class="d-flex gap-2 flex-wrap">
                     <a href="{% url 'recipe_edit' recipe.id %}" class="btn btn-outline-primary">
                         Edit Recipe
                     </a>
                     <a href="{% url 'recipe_edit_ingredients' recipe.id %}" class="btn btn-green">
                         Manage Ingredients
                     </a>
+                    <form method="post" action="{% url 'add_recipe_to_today_plan' recipe.id %}" style="margin:0;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-secondary">
+                        <i class="bi bi-calendar-plus me-1"></i> Add to Today
+                      </button>
+                    </form>
+
+
+                    {# Heart button #}
+                    <form method="post" action="{% url 'toggle_wishlist' recipe.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="wishlist-btn" title="Toggle wishlist">
+                            {% if is_in_wishlist %}
+                                <i class="bi bi-heart-fill text-danger"></i> In wishlist
+                            {% else %}
+                                <i class="bi bi-heart"></i> Add to wishlist
+                            {% endif %}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -312,7 +294,7 @@
             </div>
         </div>
 
-        {# Ingredients Section #}
+        {# Ingredients #}
         <div class="mb-4">
             <h3 class="section-header">Ingredients</h3>
 
@@ -345,19 +327,19 @@
             {% endif %}
         </div>
 
-        {# Action Buttons #}
+        {# Actions #}
         <div class="action-buttons">
             <a href="{% url 'recipe_list' %}" class="btn btn-secondary">Back to Recipes</a>
+
             <form method="post" action="{% url 'recipe_delete' recipe.id %}" style="margin: 0;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger"
-                        onclick="return confirm('Are you sure you want to delete this recipe? This action cannot be undone.');">
+                        onclick="return confirm('Are you sure you want to delete this recipe?');">
                     Delete Recipe
                 </button>
             </form>
         </div>
 
     </div>
-
 </div>
 {% endblock %}

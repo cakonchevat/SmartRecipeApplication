@@ -138,16 +138,7 @@
                                            class="btn btn-sm btn-outline-primary">
                                             Edit
                                         </a>
-                                        <form method="post"
-                                              action="{% url 'ingredient_delete' ing.id %}"
-                                              style="display:inline;">
-                                            {% csrf_token %}
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Delete ingredient {{ ing.name }}? This may affect recipes that use it.');">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        <a href="{% url 'ingredient_delete' ing.id %}" class="btn btn-danger btn-sm">Delete</a>
                                     </div>
                                 </td>
                             </tr>

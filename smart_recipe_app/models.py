@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from datetime import date
 from django.db.models import Count, F, Q
@@ -31,8 +32,8 @@ class Ingredient(models.Model):
     name = models.CharField(max_length=100, unique=True)
     base_unit = models.CharField(max_length=20, choices=UNIT_CHOICES,
                                  help_text="Mass units like kilograms (kg), grams (g), liters (l) and etc.")
-    base_amount = models.FloatField(help_text="Amount of base_unit used for calorie calculation (e.g. 100 g, 100 ml, 1 piece)")
-    calories_per_base_amount = models.FloatField(help_text="Calories for the base amount (e.g. kcal per 100 g)")
+    base_amount = models.FloatField(validators=[MinValueValidator(0.000001)], help_text="Amount of base_unit used for calorie calculation (e.g. 100 g, 100 ml, 1 piece)")
+    calories_per_base_amount = models.FloatField(validators=[MinValueValidator(0)], help_text="Calories for the base amount (e.g. kcal per 100 g)")
 
     allergens = models.ManyToManyField(Allergen, blank=True, related_name='ingredients')  # allergen.ingredients.all()
     diets = models.ManyToManyField(Diet, through='IngredientDietRelation', related_name='ingredients')  # diet.ingredients.all()
@@ -106,7 +107,7 @@ class Recipe(models.Model):
 class RecipeIngredientRelation(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipe_ingredients')  # recipe.recipe_ingredients.all()
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='ingredient_recipes')  # ingredients.ingredient_recipes.all()
-    quantity = models.FloatField()  # how many of the base_units (like 4 bananas)
+    quantity = models.FloatField(validators=[MinValueValidator(0.000001)], help_text="Amount in ingredient.base_unit (e.g., 200 g, 2 piece)")    # how many of the base_units (like 4 bananas)
 
     class Meta:
         unique_together = ('recipe', 'ingredient')
@@ -139,7 +140,7 @@ class PantryItemRelation(models.Model):
 
     pantry = models.ForeignKey(Pantry, on_delete=models.CASCADE, related_name='items')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.FloatField()
+    quantity = models.FloatField(validators=[MinValueValidator(0.000001)], help_text="Amount in ingredient.base_unit (e.g., 200 g, 2 piece)")
     source = models.CharField(max_length=20, choices=Source.choices, default=Source.MANUAL)
 
     purchased_at = models.DateField(null=True, blank=True)
@@ -175,3 +176,64 @@ class DailyPlan(models.Model):
     @property
     def remaining_calories(self):
         return self.wanted_calories - self.total_calories
+
+# ML model
+class PantryScan(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PROCESSING = "processing", "Processing"
+        DONE = "done", "Done"
+        FAILED = "failed", "Failed"
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="pantry_scans/%Y/%m/%d/")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(blank=True, default="")
+    raw_output = models.JSONField(null=True, blank=True)
+    ingredients_added_count = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['status']),
+        ]
+
+    def __str__(self):
+        return f"Scan {self.id} - {self.user.username} - {self.status}"
+
+
+class PantryScanDetection(models.Model):
+    class ReviewStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ACCEPTED = "accepted", "Accepted"
+        REJECTED = "rejected", "Rejected"
+
+    scan = models.ForeignKey(PantryScan, on_delete=models.CASCADE, related_name="detections")
+    label = models.CharField(max_length=120)
+    confidence = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)])
+
+    quantity_guess = models.FloatField(null=True, blank=True)
+
+    matched_ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Ingredient you matched this detection to"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=ReviewStatus.choices,
+        default=ReviewStatus.PENDING
+    )
+
+    class Meta:
+        ordering = ["-confidence"]
+
+    def __str__(self):
+        return f"{self.label} ({self.confidence:.2f}) - {self.status}"
+

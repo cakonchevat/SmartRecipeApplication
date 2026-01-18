@@ -12,67 +12,98 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'smart_recipe_app/theme.css' %}?v=2">
-  {% block extra_css %}{% endblock %}
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body class="d-flex flex-column min-vh-100">
 
-  <header class="app-header">
+<header class="app-header">
     <div class="app-header-inner">
 
-      <a href="{% url 'index' %}" class="app-logo-link">
-        <img src="{% static 'img/recipe_app.png' %}" alt="Recipe App Logo" class="app-logo">
-      </a>
+        <a href="{% url 'index' %}" class="app-logo-link">
+            <img src="{% static 'img/recipe_app.png' %}" alt="Recipe App Logo" class="app-logo">
+        </a>
 
-      <div class="app-header-right">
+        <div class="app-header-right">
 
-        {% if user.is_authenticated %}
-          <nav class="app-header-nav">
-            <a class="app-nav-link" href="{% url 'recipe_list' %}">Recipes</a>
-            <a class="app-nav-link" href="{% url 'ingredient_list' %}">Ingredients</a>
-            <a class="app-nav-link" href="{% url 'diet_list' %}">Diets</a>
-            <a class="app-nav-link" href="{% url 'allergen_list' %}">Allergens</a>
-          </nav>
+            {% if user.is_authenticated %}
+                <nav class="app-header-nav">
+                    <a class="app-nav-link" href="{% url 'recipe_list' %}">Recipes</a>
+                    <a class="app-nav-link" href="{% url 'ingredient_list' %}">Ingredients</a>
+                    <a class="app-nav-link" href="{% url 'diet_list' %}">Diets</a>
+                    <a class="app-nav-link" href="{% url 'allergen_list' %}">Allergens</a>
+                </nav>
 
-          <div class="dropdown">
-            <button
-              class="app-user-btn dropdown-toggle"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <i class="bi bi-person-circle"></i>
-              {{ user.username }}
-            </button>
+                <div class="dropdown">
+                    <button
+                            class="app-user-btn dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                    >
+                        <i class="bi bi-person-circle"></i>
+                        {{ user.username }}
+                    </button>
 
-            <ul class="dropdown-menu dropdown-menu-end app-dropdown-menu">
-              <li><a class="dropdown-item app-dropdown-item" href="{% url 'pantry' %}">MyPantry</a></li>
-              <li><a class="dropdown-item app-dropdown-item" href="{% url 'wishlist' %}">MyWishlist</a></li>
-              <li><a class="dropdown-item app-dropdown-item" href="{% url 'daily_plans' %}">MyDailyPlan</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <form action="{% url 'logout' %}" method="post" class="px-3 py-2">
-                  {% csrf_token %}
-                  <button class="app-logout-btn btn btn-primary-app w-100" type="submit">Logout</button>
-                </form>
-              </li>
-            </ul>
-          </div>
-        {% endif %}
+                    <ul class="dropdown-menu dropdown-menu-end app-dropdown-menu">
+                        <li><a class="dropdown-item app-dropdown-item" href="{% url 'pantry' %}">MyPantry</a></li>
+                        <li><a class="dropdown-item app-dropdown-item" href="{% url 'wishlist' %}">MyWishlist</a></li>
+                        <li><a class="dropdown-item app-dropdown-item" href="{% url 'daily_plans' %}">MyDailyPlan</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" class="px-3 py-2">
+                                {% csrf_token %}
+                                <button class="app-logout-btn btn btn-primary-app w-100" type="submit">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            {% endif %}
 
-      </div>
+        </div>
     </div>
-  </header>
+</header>
 
-  <main class="flex-grow-1 content">
+<main class="flex-grow-1 content">
+
+    {% if messages %}
+        <div id="flash-messages" class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} mb-2 alert-dismissible fade show" role="alert">
+                    {{ message|safe }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            // auto-hide after a few seconds
+            setTimeout(() => {
+                const wrap = document.getElementById("flash-messages");
+                if (!wrap) return;
+
+                wrap.querySelectorAll(".alert").forEach(a => {
+                    // bootstrap fade out
+                    a.classList.remove("show");
+                    a.classList.add("hide");
+                });
+
+                // remove from DOM after fade
+                setTimeout(() => {
+                    if (wrap) wrap.remove();
+                }, 500);
+            }, 3500);
+        </script>
+    {% endif %}
+
     {% block content %}{% endblock %}
-  </main>
+</main>
 
-  <footer class="border-top text-center py-3 mt-auto">
+<footer class="border-top text-center py-3 mt-auto">
     <small>Teona's &amp; Sofia's Recipe Application</small>
-  </footer>
+</footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  {% block extra_js %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

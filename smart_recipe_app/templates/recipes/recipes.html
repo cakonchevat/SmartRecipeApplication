@@ -43,6 +43,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
     }
 
     .recipe-image {
@@ -102,6 +103,7 @@
         display: flex;
         gap: 10px;
         margin-top: auto;
+        align-items: center;
     }
 
     .recipe-actions .btn {
@@ -135,6 +137,24 @@
         padding: 20px;
         border-radius: 12px;
         margin-bottom: 25px;
+    }
+
+    /* Heart button */
+    .wishlist-btn {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .wishlist-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.10);
     }
 </style>
 {% endblock %}
@@ -231,12 +251,34 @@
 
                             <div class="recipe-actions">
                                 <a href="{% url 'recipe_detail' r.id %}" class="btn btn-sm btn-outline-success">
-                                    View Details
+                                    View
                                 </a>
                                 <a href="{% url 'recipe_edit' r.id %}" class="btn btn-sm btn-outline-primary">
                                     Edit
                                 </a>
-                                <form method="post" action="{% url 'recipe_delete' r.id %}" style="margin: 0;">
+
+                                {# Heart button #}
+                                <form method="post" action="{% url 'toggle_wishlist' r.id %}" style="margin:0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="wishlist-btn" title="Toggle wishlist">
+                                        {% if r.id in wishlist_recipe_ids %}
+                                            <i class="bi bi-heart-fill text-danger"></i>
+                                        {% else %}
+                                            <i class="bi bi-heart"></i>
+                                        {% endif %}
+                                    </button>
+                                </form>
+
+                            {# Add to today's plan button #}
+                                <form method="post" action="{% url 'add_recipe_to_today_plan' r.id %}" style="margin:0;">
+                                  {% csrf_token %}
+                                  <button type="submit" class="wishlist-btn" title="Add to today's plan">
+                                    <i class="bi bi-calendar-plus"></i>
+                                  </button>
+                                </form>
+
+                                {# Delete recipe (POST) #}
+                                <form method="post" action="{% url 'recipe_delete' r.id %}" style="margin:0;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-danger"
                                             onclick="return confirm('Delete {{ r.name }}?');">
