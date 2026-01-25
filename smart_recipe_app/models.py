@@ -8,6 +8,7 @@ from django.conf import settings
 
 class Diet(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True, help_text="Brief explanation of this diet (e.g., what foods are allowed/excluded)")
 
     def __str__(self):
         return self.name
@@ -21,10 +22,8 @@ class Allergen(models.Model):
 class Ingredient(models.Model):
     UNIT_CHOICES = [
         ('g', 'grams (g)'),
-        ('kg', 'kilograms (kg)'),
         ('ml', 'milliliters (ml)'),
-        ('l', 'liters (l)'),
-        ('piece', 'piece'),
+        ('pcs', 'pieces'),
         ('tsp', 'teaspoon'),
         ('tbsp', 'tablespoon'),
         ('cup', 'cup'),

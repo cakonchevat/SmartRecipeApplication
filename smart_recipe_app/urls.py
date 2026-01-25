@@ -33,9 +33,6 @@ urlpatterns = [
     path("recipes/create/", views.recipe_create, name="recipe_create"),
     path("recipes/<int:pk>/", views.recipe_detail, name="recipe_detail"),
 
-    path("recipes/<int:pk>/wishlist-toggle/", views.toggle_wishlist, name="toggle_wishlist"),
-    path("recipes/<int:pk>/add-to-today-plan/", views.add_recipe_to_today_plan, name="add_recipe_to_today_plan"),
-
     path("recipes/<int:pk>/edit/", views.recipe_edit, name="recipe_edit"),
     path("recipes/<int:pk>/edit-ingredients/", views.recipe_edit_ingredients, name="recipe_edit_ingredients"),
     path("recipes/<int:pk>/remove-ingredient/<int:relation_id>/", views.recipe_remove_ingredient, name="recipe_remove_ingredient"),

@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.utils.safestring import mark_safe
 
 from smart_recipe_app.services import process_pantry_scan
@@ -190,8 +191,6 @@ def ingredient_delete(request, pk):
 @login_required
 def recipe_list(request):
     qs = Recipe.objects.prefetch_related("recipe_ingredients__ingredient").order_by("name")
-
-    # optional: ignore recipes with 0 ingredients
     qs = qs.exclude(recipe_ingredients__isnull=True).distinct()
 
     diet_id = request.GET.get("diet_id")
@@ -213,6 +212,13 @@ def recipe_list(request):
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
     wishlist_recipe_ids = set(wishlist.recipes.values_list("id", flat=True))
 
+    today_plan, _ = DailyPlan.objects.get_or_create(
+        user=request.user,
+        date=date.today(),
+        defaults={"wanted_calories": 2000}
+    )
+    daily_plan_recipe_ids = set(today_plan.recipes.values_list("id", flat=True))
+
     return render(request, "recipes/recipes.html", {
         "recipes": qs,
         "diets": diets,
@@ -221,6 +227,7 @@ def recipe_list(request):
         "selected_allergen_id": allergen_id,
         "q": q or "",
         "wishlist_recipe_ids": wishlist_recipe_ids,
+        "daily_plan_recipe_ids": daily_plan_recipe_ids,
     })
 
 
@@ -344,49 +351,36 @@ def toggle_wishlist(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
-    if wishlist.recipes.filter(pk=recipe.pk).exists():
+    is_in_wishlist = wishlist.recipes.filter(pk=recipe.pk).exists()
+
+    if is_in_wishlist:
         wishlist.recipes.remove(recipe)
-        messages.success(request, mark_safe(
-            f"Removed from wishlist. "
-            f"<a href='{reverse('wishlist')}' class='btn btn-sm btn-outline-secondary ms-2'>See wishlist</a>"
-        ))
+        action = 'removed'
     else:
         wishlist.recipes.add(recipe)
-        messages.success(request, mark_safe(
-            f"Added to wishlist. "
-            f"<a href='{reverse('wishlist')}' class='btn btn-sm btn-outline-secondary ms-2'>See wishlist</a>"
-        ))
+        action = 'added'
 
-    return redirect(request.META.get("HTTP_REFERER", reverse("recipe_list")))
+    return JsonResponse({'status': 'success', 'action': action})
+
 
 @login_required
 @require_POST
 def add_recipe_to_today_plan(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
-
     plan, _ = DailyPlan.objects.get_or_create(
         user=request.user,
         date=date.today(),
         defaults={"wanted_calories": 2000}
     )
-    plan.recipes.add(recipe)
 
-    messages.success(request, "Added to today's plan.")
-    return redirect(request.META.get("HTTP_REFERER", reverse("recipe_list")))
+    # Toggle behavior
+    if plan.recipes.filter(pk=recipe.pk).exists():
+        plan.recipes.remove(recipe)
+        action = 'removed'
+    else:
+        plan.recipes.add(recipe)
+        action = 'added'
 
-@login_required
-@require_POST
-def add_recipe_to_today_plan(request, pk):
-    recipe = get_object_or_404(Recipe, pk=pk)
-
-    plan, _ = DailyPlan.objects.get_or_create(
-        user=request.user,
-        date=date.today(),
-        defaults={"wanted_calories": 2000}
-    )
-    plan.recipes.add(recipe)
-    messages.success(request, "Added to today's plan.")
-    return redirect("recipe_detail", pk=pk)
 
 
 # ===== PANTRY VIEWS =====
@@ -506,7 +500,15 @@ def wishlist_view(request):
 @login_required
 def daily_plans_list(request):
     plans = DailyPlan.objects.filter(user=request.user).order_by('-date')
-    return render(request, 'daily_plan/daily_plans.html', {'plans': plans})
+
+    today_plan = plans.filter(date=date.today()).first()
+    past_plans = plans.exclude(date=date.today())
+
+    return render(request, 'daily_plan/daily_plans.html', {
+        'plans': plans,
+        'today_plan': today_plan,
+        'past_plans': past_plans,
+    })
 
 
 @login_required

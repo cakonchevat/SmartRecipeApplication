@@ -1,144 +1,183 @@
+<!-- ========== RECIPE CREATE/EDIT FORM (recipe_form.html) ========== -->
 {% extends 'common/base.html' %}
 
 {% block title %}{% if recipe %}Edit Recipe{% else %}Create Recipe{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .form-card {
-        background: white;
-        padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
-        max-width: 700px;
-        margin: 0 auto;
+    .form-container {
+        max-width: 800px;
+        margin: 60px auto 80px;
+        padding: 0 40px;
     }
 
     .form-header {
-        border-bottom: 3px solid #28a745;
-        padding-bottom: 15px;
-        margin-bottom: 25px;
+        margin-bottom: 40px;
+    }
+
+    .form-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+    }
+
+    .form-subtitle {
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .form-card {
+        background: white;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        padding: 40px;
+    }
+
+    .form-group {
+        margin-bottom: 28px;
     }
 
     .form-label {
         font-weight: 600;
-        color: #333;
-        margin-bottom: 8px;
+        color: var(--text-dark);
+        margin-bottom: 10px;
         display: block;
+        font-size: 15px;
     }
 
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        padding: 10px 15px;
+    .form-control, .form-select, textarea {
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 14px 18px;
         width: 100%;
-        box-sizing: border-box;
+        font-size: 15px;
+        transition: all 0.3s ease;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    .form-control:focus, .form-select:focus, textarea:focus {
+        border-color: var(--vintage-grape);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(73, 65, 109, 0.1);
     }
 
-    .form-row {
-        margin-bottom: 16px;
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .image-preview {
+        max-width: 100%;
+        height: auto;
+        max-height: 400px;
+        border-radius: 16px;
+        margin-top: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .form-actions {
         display: flex;
-        justify-content: flex-end;
-        align-items: center;
         gap: 12px;
-        margin-top: 22px;
+        justify-content: flex-end;
+        margin-top: 40px;
+        padding-top: 32px;
+        border-top: 1px solid #f0f0f0;
     }
 
-    .form-actions .btn {
-        min-width: 150px;
-        padding: 12px 26px;
-        border-radius: 8px;
-    }
-
-    .btn-green {
-        background: #28a745;
+    .btn-submit {
+        background: var(--vintage-grape);
         color: white;
         border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-weight: 500;
+        padding: 14px 32px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
     }
 
-    .btn-green:hover {
-        background: #218838;
-        color: white;
+    .btn-submit:hover {
+        background: var(--bright-lavender);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
     }
 
-    .image-preview {
-        max-width: 300px;
-        max-height: 300px;
-        margin-top: 15px;
-        border-radius: 12px;
-        display: block;
+    .btn-cancel {
+        background: white;
+        color: var(--text-dark);
+        border: 2px solid #e8e8e8;
+        padding: 12px 32px;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        border-color: var(--text-dark);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    
-    <div class="form-card">
-        <div class="form-header">
-            <h2>{% if recipe %}Edit Recipe: {{ recipe.name }}{% else %}Create New Recipe{% endif %}</h2>
-        </div>
-
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <div class="form-row">
-            <label class="form-label" for="{{ form.name.id_for_label }}">Recipe Name *</label>
-            {{ form.name }}
-            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors }}</div>{% endif %}
-        </div>
-
-        <div class="form-row">
-            <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
-            {{ form.description }}
-            {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
-        </div>
-
-        <div class="row form-row">
-            <div class="col-md-6">
-                <label class="form-label" for="{{ form.no_of_servings.id_for_label }}">Number of Servings *</label>
-                {{ form.no_of_servings }}
-                {% if form.no_of_servings.errors %}<div class="text-danger small mt-1">{{ form.no_of_servings.errors }}</div>{% endif %}
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label" for="{{ form.preparation_time.id_for_label }}">Preparation Time (minutes) *</label>
-                {{ form.preparation_time }}
-                {% if form.preparation_time.errors %}<div class="text-danger small mt-1">{{ form.preparation_time.errors }}</div>{% endif %}
-            </div>
-        </div>
-
-        <div class="form-row">
-            <label class="form-label" for="{{ form.image.id_for_label }}">Recipe Image</label>
-            {{ form.image }}
-            {% if form.image.errors %}<div class="text-danger small mt-1">{{ form.image.errors }}</div>{% endif %}
-
-            {% if recipe and recipe.image %}
-                <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="image-preview">
-            {% endif %}
-        </div>
-
-        <div class="form-actions">
-            <a href="{% url 'recipe_list' %}" class="btn btn-secondary">Cancel</a>
-
-            {% if recipe %}
-                <button type="submit" class="btn btn-green">Save Changes</button>
-            {% else %}
-                <button type="submit" class="btn btn-green">Create & Add Ingredients</button>
-            {% endif %}
-        </div>
-    </form>
+<div class="form-container">
+    <div class="form-header">
+        <h1 class="form-title">{% if recipe %}Edit Recipe{% else %}Create Recipe{% endif %}</h1>
+        <p class="form-subtitle">{% if recipe %}Update your recipe details{% else %}Add a new recipe to your collection{% endif %}</p>
     </div>
 
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Recipe Name *</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="text-danger small mt-2">{{ form.name.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="text-danger small mt-2">{{ form.description.errors }}</div>{% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Servings *</label>
+                        {{ form.no_of_servings }}
+                        {% if form.no_of_servings.errors %}<div class="text-danger small mt-2">{{ form.no_of_servings.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Prep Time (min) *</label>
+                        {{ form.preparation_time }}
+                        {% if form.preparation_time.errors %}<div class="text-danger small mt-2">{{ form.preparation_time.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Recipe Image</label>
+                {{ form.image }}
+                {% if form.image.errors %}<div class="text-danger small mt-2">{{ form.image.errors }}</div>{% endif %}
+
+                {% if recipe and recipe.image %}
+                    <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="image-preview">
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'recipe_list' %}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-submit">
+                    {% if recipe %}Save Changes{% else %}Create Recipe{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

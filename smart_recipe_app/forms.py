@@ -1,3 +1,5 @@
+from jsonschema import ValidationError
+
 from .models import *
 from django import forms
 
@@ -19,7 +21,10 @@ class AllergenForm(forms.ModelForm):
 class DietForm(forms.ModelForm):
     class Meta:
         model = Diet
-        fields = ['name']
+        fields = ['name', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
 
 class IngredientForm(forms.ModelForm):
     diets = forms.ModelMultipleChoiceField(
@@ -102,3 +107,16 @@ class PantryScanForm(forms.ModelForm):
     class Meta:
         model = PantryScan
         fields = ['image']
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            # Validate file size (5MB limit)
+            if image.size > 5 * 1024 * 1024:
+                raise ValidationError("Image file too large (max 5MB)")
+
+            # Validate file type
+            if not image.content_type.startswith('image/'):
+                raise ValidationError("File must be an image")
+
+        return image

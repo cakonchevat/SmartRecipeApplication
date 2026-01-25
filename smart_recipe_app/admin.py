@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Count
 from smart_recipe_app.models import Diet, Allergen, Ingredient, IngredientDietRelation, Recipe, \
-    RecipeIngredientRelation, PantryItemRelation, Pantry, Wishlist, PantryScan, PantryScanDetection
+    RecipeIngredientRelation, PantryItemRelation, Pantry, Wishlist, PantryScan, PantryScanDetection, DailyPlan
 
 
 # Register your models here.
@@ -9,7 +9,7 @@ from smart_recipe_app.models import Diet, Allergen, Ingredient, IngredientDietRe
 # Diet
 @admin.register(Diet)
 class DietAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'description')
     search_fields = ('name',)
 
 # IngredientAllergens
@@ -101,6 +101,16 @@ class PantryItemAdmin(admin.ModelAdmin):
 class WishlistAdmin(admin.ModelAdmin):
     list_display = ('user',)
     filter_horizontal = ('recipes',)
+
+@admin.register(DailyPlan)
+class DailyPlanAdmin(admin.ModelAdmin):
+    list_display = ('user', 'date', 'wanted_calories', 'total_calories', 'remaining_calories')
+    list_filter = ('date', 'user')
+    filter_horizontal = ('recipes',)
+    date_hierarchy = 'date'
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('recipes')
 
 # ML model
 class PantryScanDetectionInline(admin.TabularInline):

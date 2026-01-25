@@ -4,226 +4,208 @@
 
 {% block extra_css %}
 <style>
-    .form-card {
-        background: white;
-        padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+    .ingredients-container {
+        max-width: 1000px;
+        margin: 60px auto 80px;
+        padding: 0 40px;
     }
 
-    .ingredients-list {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 25px;
+    .page-header {
+        margin-bottom: 40px;
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .ingredients-card {
+        background: white;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        padding: 32px;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-dark);
     }
 
     .ingredient-item {
-        background: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        margin-bottom: 10px;
+        background: #fafafa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
     }
 
-    .ingredient-info {
-        flex: 1;
+    .ingredient-item:hover {
+        background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
     }
 
-    .ingredient-name {
-        font-weight: 600;
+    .ingredient-info h5 {
         font-size: 16px;
-        color: #333;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text-dark);
     }
 
     .ingredient-details {
         font-size: 14px;
-        color: #666;
-        margin-top: 5px;
-    }
-
-    .ingredient-select {
-        display: block;
-        width: 50%;
-        height: 35%;
-    }
-
-    .add-ingredient-form {
-        background: #e8f5e9;
-        padding: 25px;
-        border-radius: 12px;
-        border: 2px dashed #28a745;
-    }
-
-    .btn-green {
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 0 20px;          /* horizontal only */
-        height: 44px;             /* SAME height */
-        line-height: 44px;        /* vertical centering */
-        border-radius: 8px;
-    }
-
-    .btn-secondary, .btn-outline-secondary {
-        padding: 0 20px;          /* horizontal only */
-        height: 44px;             /* SAME height */
-        line-height: 44px;        /* vertical centering */
-        border-radius: 8px;
-    }
-
-    .btn-green:hover {
-        background: #218838;
-        color: white;
+        color: var(--text-muted);
     }
 
     .calorie-badge {
-        background: #28a745;
+        background: var(--vintage-grape);
         color: white;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 13px;
+        padding: 6px 16px;
+        border-radius: 50px;
         font-weight: 600;
-        margin-left: 10px;
+        font-size: 13px;
+        margin-left: 12px;
+    }
+
+    .total-calories {
+        background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 100%);
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+
+    .add-ingredient-section {
+        background: white;
+        border: 2px dashed var(--icy-aqua);
+        border-radius: 20px;
+        padding: 32px;
+        margin-bottom: 24px;
+    }
+
+    .btn-add {
+        background: var(--vintage-grape);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        background: var(--bright-lavender);
+        transform: translateY(-2px);
+    }
+
+    .btn-remove {
+        background: #ff4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
     }
 
     .empty-state {
         text-align: center;
-        padding: 40px 20px;
-        color: #999;
+        padding: 60px 20px;
+        color: var(--text-muted);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="ingredients-container">
+    <div class="page-header">
+        <h1 class="page-title">Manage Ingredients</h1>
+        <p class="page-subtitle">Recipe: <strong>{{ recipe.name }}</strong></p>
+    </div>
 
-    <div class="form-card">
+    <div class="ingredients-card">
+        <h3 class="section-title">Current Ingredients ({{ relations|length }})</h3>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2>Manage Ingredients</h2>
-                <p class="text-muted mb-0">
-                    Recipe: <strong>{{ recipe.name }}</strong>
-                </p>
+        {% if relations %}
+            {% for rel in relations %}
+            <div class="ingredient-item">
+                <div class="ingredient-info">
+                    <h5>{{ rel.ingredient.name }}</h5>
+                    <div class="ingredient-details">
+                        {{ rel.quantity }} {{ rel.ingredient.base_unit }}
+                        <span class="calorie-badge">{{ rel.calories|floatformat:0 }} kcal</span>
+                    </div>
+                </div>
+                <a href="{% url 'recipe_remove_ingredient' recipe.id rel.id %}" class="btn-remove">Remove</a>
             </div>
-            <a href="{% url 'recipe_detail' recipe.id %}" class="btn btn-outline-secondary">
-                View Recipe Details
-            </a>
+            {% endfor %}
+
+            <div class="total-calories">
+                <strong style="font-size: 16px;">Total Recipe Calories:</strong>
+                <span style="font-size: 28px; font-weight: 700; color: var(--vintage-grape); margin-left: 12px;">
+                    {{ recipe.total_calories|floatformat:0 }} kcal
+                </span>
+                <span class="text-muted" style="margin-left: 12px;">
+                    ({{ recipe.calories_per_serving|floatformat:0 }} kcal per serving)
+                </span>
+            </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-basket" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 16px;"></i>
+            <p>No ingredients added yet</p>
         </div>
+        {% endif %}
+    </div>
 
-        {# Current Ingredients List #}
-        <div class="ingredients-list">
-            <h4 class="mb-3">Current Ingredients ({{ relations|length }})</h4>
+    <div class="add-ingredient-section">
+        <h3 class="section-title">Add New Ingredient</h3>
 
-            {% if relations %}
-                {% for rel in relations %}
-                    <div class="ingredient-item">
-                        <div class="ingredient-info">
-                            <div class="ingredient-name">{{ rel.ingredient.name }}</div>
-                            <div class="ingredient-details">
-                                <strong>{{ rel.quantity }}</strong> {{ rel.ingredient.base_unit }}
-                                <span class="calorie-badge">
-                                    {{ rel.calories|floatformat:1 }} kcal
-                                </span>
-                            </div>
-                        </div>
-                        <a href="{% url 'recipe_remove_ingredient' recipe.id rel.id %}"
-                           class="btn btn-sm btn-danger">
-                            Remove
-                        </a>
-                    </div>
-                {% endfor %}
-
-                <div class="mt-3 p-3 bg-white rounded">
-                    <strong>Total Recipe Calories:</strong>
-                    <span class="text-success fs-5 fw-bold">
-                        {{ recipe.total_calories|floatformat:0 }} kcal
-                    </span>
-                    <span class="text-muted ms-2">
-                        ({{ recipe.calories_per_serving|floatformat:0 }} kcal per serving)
-                    </span>
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label class="form-label fw-bold">Ingredient *</label>
+                    {{ form.ingredient }}
                 </div>
-            {% else %}
-                <div class="empty-state">
-                    <p>No ingredients added yet.</p>
-                    <p class="small text-muted">
-                        Use the form below to add your first ingredient.
-                    </p>
-                </div>
-            {% endif %}
-        </div>
-
-        {# Add New Ingredient Form #}
-        <div class="add-ingredient-form">
-            <h4 class="mb-3">Add New Ingredient</h4>
-
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label class="form-label fw-bold">Ingredient *</label>
-                        {{ form.ingredient }}
-                        {% if form.ingredient.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.ingredient.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label fw-bold">Quantity *</label>
-
-                        <div class="d-flex align-items-center gap-2">
-                            {{ form.quantity }}
-                            <span id="base-unit-label"
-                                  class="text-muted fw-semibold"></span>
-                        </div>
-
-                        {% if form.quantity.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.quantity.errors }}
-                            </div>
-                        {% endif %}
-
-                        <small class="form-text text-muted">
-                            Uses ingredient base unit
-                        </small>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold">Quantity *</label>
+                    <div class="d-flex align-items-center gap-2">
+                        {{ form.quantity }}
+                        <span id="base-unit-label" class="text-muted fw-semibold"></span>
                     </div>
                 </div>
+            </div>
 
-                <div class="d-flex gap-2 align-items-center">
-                    <button type="submit" class="btn btn-green">
-                        + Add Ingredient
-                    </button>
-                    <a href="{% url 'ingredient_create' %}?next={{ request.get_full_path|urlencode }}"
-                       class="btn btn-outline-secondary">
-                        Create New Ingredient
-                    </a>
-                </div>
-            </form>
-        </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn-add">
+                    <i class="bi bi-plus-lg me-2"></i>Add Ingredient
+                </button>
+                <a href="{% url 'ingredient_create' %}?next={{ request.get_full_path|urlencode }}"
+                   class="btn btn-outline-secondary">
+                    Create New Ingredient
+                </a>
+            </div>
+        </form>
+    </div>
 
-        {# Action Buttons #}
-        <div class="d-flex gap-2 justify-content-end align-items-center mt-4">
-            <a href="{% url 'recipe_list' %}"
-               class="btn btn-secondary d-inline-flex align-items-center">
-                Back to Recipes
-            </a>
-            <a href="{% url 'recipe_detail' recipe.id %}"
-               class="btn btn-green d-inline-flex align-items-center">
-                Done - View Recipe
-            </a>
-        </div>
-
+    <div class="d-flex gap-2 justify-content-end">
+        <a href="{% url 'recipe_list' %}" class="btn btn-outline-secondary">Back to Recipes</a>
+        <a href="{% url 'recipe_detail' recipe.id %}" class="btn-add">Done - View Recipe</a>
     </div>
 </div>
 
-{# ===== JS: show base unit next to quantity ===== #}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const ingredientSelect = document.querySelector(".ingredient-select");
@@ -233,15 +215,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updateUnit() {
         const option = ingredientSelect.options[ingredientSelect.selectedIndex];
-        unitLabel.textContent =
-            option && option.dataset && option.dataset.unit
-                ? option.dataset.unit
-                : "";
+        unitLabel.textContent = option && option.dataset && option.dataset.unit ? option.dataset.unit : "";
     }
 
     ingredientSelect.addEventListener("change", updateUnit);
-    updateUnit(); // initialize on page load
+    updateUnit();
 });
 </script>
-
 {% endblock %}
