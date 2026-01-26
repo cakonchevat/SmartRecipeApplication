@@ -4,145 +4,187 @@
 
 {% block extra_css %}
 <style>
-    .cookable-container {
-        max-width: 1000px;
-        margin: 60px auto 80px;
-        padding: 0 40px;
-    }
+  .cookable-container{
+    max-width: 1200px;
+    margin: 60px auto 80px;
+    padding: 0 40px;
+  }
 
-    .page-header {
-        margin-bottom: 40px;
-    }
+  .page-header{
+    margin-bottom: 40px;
+  }
 
-    .page-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 42px;
-        font-weight: 900;
-        color: var(--text-dark);
-        margin-bottom: 12px;
-    }
+  .page-title{
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+  }
 
-    .page-subtitle {
-        font-size: 16px;
-        color: var(--text-muted);
-    }
+  .page-subtitle{
+    font-size: 16px;
+    color: var(--text-muted);
+  }
 
-    .cookable-card {
-        background: white;
-        border: 1px solid #f0f0f0;
-        border-radius: 20px;
-        padding: 32px;
-    }
+  .cookable-card{
+    background: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 20px;
+    padding: 32px;
+  }
 
-    .recipe-item {
-        background: #fafafa;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all 0.2s ease;
-    }
+  .recipe-item{
+    background: #fafafa;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+  }
 
-    .recipe-item:hover {
-        background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
-        transform: translateX(4px);
-    }
+  .recipe-item:hover{
+    background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
 
-    .recipe-info h5 {
-        font-size: 18px;
-        font-weight: 700;
-        margin-bottom: 6px;
-        color: var(--text-dark);
-    }
+  .recipe-info h5{
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--text-dark);
+  }
 
-    .recipe-meta {
-        font-size: 14px;
-        color: var(--text-muted);
-    }
+  .recipe-meta{
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
 
-    .btn-view {
-        background: var(--vintage-grape);
-        color: white;
-        border: none;
-        padding: 10px 24px;
-        border-radius: 50px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
+  .meta-item{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-    .btn-view:hover {
-        background: var(--bright-lavender);
-        color: white;
-        transform: translateY(-2px);
-    }
+  .meta-item i{
+    color: var(--vintage-grape);
+  }
 
-    .empty-state {
-        text-align: center;
-        padding: 80px 20px;
-    }
+  .btn-view{
+    background: var(--vintage-grape);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 50px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-    .empty-state i {
-        font-size: 64px;
-        color: #ddd;
-        margin-bottom: 24px;
-    }
+  .btn-view:hover{
+    background: var(--bright-lavender);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(73, 65, 109, 0.25);
+  }
 
-    .empty-state h3 {
-        font-family: 'Playfair Display', serif;
-        font-size: 28px;
-        font-weight: 700;
-        margin-bottom: 12px;
-    }
+  .empty-state{
+    text-align: center;
+    padding: 70px 20px;
+  }
+
+  .empty-state i{
+    font-size: 64px;
+    color: #ddd;
+    margin-bottom: 18px;
+    display: inline-block;
+  }
+
+  .empty-state h3{
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 768px){
+    .cookable-container{ padding: 0 20px; }
+    .recipe-item{ flex-direction: column; align-items: flex-start; }
+    .btn-view{ width: 100%; justify-content: center; }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="cookable-container">
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div>
-                <h1 class="page-title">Ready to Cook</h1>
-                <p class="page-subtitle">Recipes you can make with your current pantry</p>
-            </div>
-            <a href="{% url 'pantry' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-basket me-2"></i>Manage Pantry
-            </a>
-        </div>
-    </div>
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h1 class="page-title">Ready to Cook</h1>
+        <p class="page-subtitle">Recipes you can make with your current pantry</p>
+      </div>
 
-    <div class="cookable-card">
-        {% if recipes %}
-            {% for r in recipes %}
-            <div class="recipe-item">
-                <div class="recipe-info">
-                    <h5>{{ r.name }}</h5>
-                    <div class="recipe-meta">
-                        <i class="bi bi-clock me-1"></i>{{ r.preparation_time }} min
-                        <span class="mx-2">•</span>
-                        <i class="bi bi-fire me-1"></i>
-                        {% if r.calories_per_serving %}
-                            {{ r.calories_per_serving|floatformat:0 }} kcal/serving
-                        {% else %}
-                            No calorie info
-                        {% endif %}
-                    </div>
-                </div>
-                <a href="{% url 'recipe_detail' r.id %}" class="btn-view">View Recipe</a>
-            </div>
-            {% endfor %}
-        {% else %}
-        <div class="empty-state">
-            <i class="bi bi-basket"></i>
-            <h3>No recipes available</h3>
-            <p class="text-muted">Add more ingredients to your pantry to see what you can cook!</p>
-            <a href="{% url 'pantry' %}" class="btn-view mt-3">
-                <i class="bi bi-basket me-2"></i>Go to Pantry
-            </a>
-        </div>
-        {% endif %}
+      <a href="{% url 'pantry' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-basket me-2"></i>Manage Pantry
+      </a>
     </div>
+  </div>
+
+  <div class="cookable-card">
+    {% if recipes %}
+      {% for r in recipes %}
+        <div class="recipe-item">
+          <div class="recipe-info">
+            <h5>{{ r.name }}</h5>
+
+            <div class="recipe-meta">
+              <span class="meta-item">
+                <i class="bi bi-clock"></i>{{ r.preparation_time }} min
+              </span>
+
+              <span class="meta-item">
+                <i class="bi bi-people"></i>{{ r.no_of_servings }} servings
+              </span>
+
+              <span class="meta-item">
+                <i class="bi bi-fire"></i>
+                {% if r.calories_per_serving %}
+                  {{ r.calories_per_serving|floatformat:0 }} kcal/serving
+                {% else %}
+                  No calorie info
+                {% endif %}
+              </span>
+            </div>
+          </div>
+
+          <a href="{% url 'recipe_detail' r.id %}" class="btn-view">
+            <i class="bi bi-eye"></i>View Recipe
+          </a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-basket"></i>
+        <h3>No recipes available</h3>
+        <p class="text-muted">Add more ingredients to your pantry to see what you can cook!</p>
+        <a href="{% url 'pantry' %}" class="btn-view mt-3">
+          <i class="bi bi-basket"></i>Go to Pantry
+        </a>
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

@@ -2,33 +2,177 @@
 
 {% block title %}Scan Your Pantry{% endblock %}
 
+{% block extra_css %}
+<style>
+  .scan-container{
+    max-width: 700px;
+    margin: 60px auto 80px;
+    padding: 0 40px;
+  }
+
+  .page-header{
+    margin-bottom: 40px;
+  }
+
+  .page-title{
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+  }
+
+  .page-subtitle{
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+
+  .scan-card{
+    background: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 20px;
+    padding: 40px;
+  }
+
+  .form-row{
+    margin-bottom: 22px;
+  }
+
+  .form-label{
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    display: block;
+    font-size: 15px;
+  }
+
+  .form-control, input[type="file"]{
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 14px 18px;
+    width: 100%;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: white;
+  }
+
+  .form-control:focus, input[type="file"]:focus{
+    border-color: var(--vintage-grape);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(73, 65, 109, 0.1);
+  }
+
+  .help-text{
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    display: block;
+  }
+
+  .alert-danger{
+    background: #fff5f5;
+    border: 1px solid rgba(255, 68, 68, 0.25);
+    border-radius: 14px;
+    padding: 14px 16px;
+    color: #cc0000;
+    margin-bottom: 18px;
+    font-size: 14px;
+  }
+
+  .form-actions{
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 34px;
+    padding-top: 28px;
+    border-top: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+  }
+
+  .btn-submit{
+    background: var(--vintage-grape);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-submit:hover{
+    background: var(--bright-lavender);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
+  }
+
+  .btn-cancel{
+    background: white;
+    color: var(--text-dark);
+    border: 2px solid #e8e8e8;
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-cancel:hover{
+    border-color: var(--text-dark);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px){
+    .scan-container{ padding: 0 18px; }
+    .page-title{ font-size: 36px; }
+    .scan-card{ padding: 26px; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2>Scan Your Pantry</h2>
-    <p>Upload a photo of your fridge or pantry to automatically detect ingredients.</p>
+<div class="scan-container">
+  <div class="page-header">
+    <h1 class="page-title">Scan Your Pantry</h1>
+    <p class="page-subtitle">Upload a photo of your pantry/fridge and review detected ingredients</p>
+  </div>
 
-    <form method="post" enctype="multipart/form-data" class="mt-4">
-        {% csrf_token %}
+  <div class="scan-card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
 
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-        {% endif %}
-        {% if form.errors %}
-          <div class="alert alert-danger">
-            <pre style="margin:0;">{{ form.errors }}</pre>
-          </div>
-        {% endif %}
+      {% if form.non_field_errors %}
+        <div class="alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
 
-        <div class="mb-3">
-            {{ form.image.label_tag }}
-            {{ form.image }}
-            {% if form.image.errors %}
-                <div class="text-danger">{{ form.image.errors }}</div>
-            {% endif %}
+      {% if form.errors %}
+        <div class="alert-danger">
+          {{ form.errors }}
         </div>
+      {% endif %}
 
-        <button type="submit" class="btn btn-primary">Upload &amp; Scan</button>
-        <a href="{% url 'pantry' %}" class="btn btn-secondary">Cancel</a>
+      <div class="form-row">
+        <label class="form-label">{{ form.image.label|default:"Image" }}</label>
+        {{ form.image }}
+        {% if form.image.errors %}
+          <div class="text-danger small mt-2">{{ form.image.errors }}</div>
+        {% endif %}
+        <span class="help-text">Tip: clearer photos = better detections.</span>
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'pantry' %}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit">
+          <i class="bi bi-upload"></i> Upload &amp; Scan
+        </button>
+      </div>
     </form>
+  </div>
 </div>
 {% endblock %}

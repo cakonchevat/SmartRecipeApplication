@@ -75,7 +75,7 @@ class Recipe(models.Model):
 
     @property
     def calories_per_serving(self):
-        # Example: if the recipes has servings defined (like 4 servings / plates), divide the calories per servings (per person)
+        # Example: if the recipe has servings defined (like 4 servings / plates), divide the calories per servings (per person)
         if self.no_of_servings:
             return self.total_calories / self.no_of_servings
         return None

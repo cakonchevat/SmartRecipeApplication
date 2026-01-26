@@ -1,139 +1,195 @@
 {% extends 'common/base.html' %}
 
-{% block title %}
-    {% if item %}Edit Pantry Item{% else %}Add Pantry Item{% endif %}
-{% endblock %}
+{% block title %}{% if item %}Edit Pantry Item{% else %}Add Pantry Item{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .form-card {
-        background: white;
-        padding: 30px;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+    .form-container{
         max-width: 700px;
-        margin: 0 auto;
+        margin: 60px auto 80px;
+        padding: 0 40px;
     }
 
-    .form-header {
-        border-bottom: 3px solid #28a745;
-        padding-bottom: 15px;
-        margin-bottom: 25px;
+    .form-header{
+        margin-bottom: 40px;
     }
 
-    .form-label {
+    .form-title{
+        font-family: 'Playfair Display', serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+    }
+
+    .form-subtitle{
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .form-card{
+        background: white;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        padding: 40px;
+    }
+
+    .form-row{
+        margin-bottom: 22px;
+    }
+
+    .form-label{
         font-weight: 600;
-        color: #333;
-        margin-bottom: 8px;
+        color: var(--text-dark);
+        margin-bottom: 10px;
         display: block;
+        font-size: 15px;
     }
 
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        padding: 10px 15px;
+    .form-control, .form-select, input[type="date"]{
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 14px 18px;
         width: 100%;
-        box-sizing: border-box;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: white;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    .form-control:focus, .form-select:focus, input[type="date"]:focus{
+        border-color: var(--vintage-grape);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(73, 65, 109, 0.1);
     }
 
-    .form-row {
-        margin-bottom: 16px;
-    }
-
-    .help-text {
+    .help-text{
         font-size: 13px;
-        color: #666;
-        margin-top: 6px;
+        color: var(--text-muted);
+        margin-top: 8px;
         display: block;
     }
 
-    .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 12px;
-        margin-top: 22px;
-    }
-
-    .form-actions .btn {
-        min-width: 150px;
-        padding: 12px 26px;
-        border-radius: 8px;
-    }
-
-    .btn-green {
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-
-    .btn-green:hover {
-        background: #218838;
-        color: white;
-    }
-
-    .alert-danger {
-        background: #f8d7da;
-        border: 1px solid #f5c2c7;
-        border-radius: 10px;
-        padding: 15px;
-        color: #842029;
-        margin-bottom: 20px;
-    }
-
-    .create-link {
+    .create-link{
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        color: #28a745;
+        color: var(--vintage-grape);
         text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        transition: color 0.2s;
+        font-size: 13px;
+        font-weight: 700;
     }
 
-    .create-link:hover {
-        color: #218838;
+    .create-link:hover{
         text-decoration: underline;
+        color: var(--bright-lavender);
     }
 
     .qty-inline{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .unit-suffix{
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .check-wrap{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        background: #fafafa;
+    }
+
+    .form-actions{
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 34px;
+        padding-top: 28px;
+        border-top: 1px solid #f0f0f0;
+        flex-wrap: wrap;
+    }
+
+    .btn-submit{
+        background: var(--vintage-grape);
+        color: white;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
         gap: 10px;
     }
 
-    .unit-suffix{
-        font-size: 18px;
+    .btn-submit:hover{
+        background: var(--bright-lavender);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
+    }
+
+    .btn-cancel{
+        background: white;
+        color: var(--text-dark);
+        border: 2px solid #e8e8e8;
+        padding: 12px 32px;
+        border-radius: 50px;
         font-weight: 600;
-        color: #666;
-        line-height: 1;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-cancel:hover{
+        border-color: var(--text-dark);
+        transform: translateY(-1px);
+    }
+
+    .alert-danger{
+        background: #fff5f5;
+        border: 1px solid rgba(255, 68, 68, 0.25);
+        border-radius: 14px;
+        padding: 14px 16px;
+        color: #cc0000;
+        margin-bottom: 18px;
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px){
+        .form-container{ padding: 0 18px; }
+        .form-title{ font-size: 36px; }
+        .form-card{ padding: 26px; }
+        .qty-inline{ flex-direction: column; align-items: stretch; }
+        .unit-suffix{ text-align: left; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="form-container">
+    <div class="form-header">
+        <h1 class="form-title">{% if item %}Edit Pantry Item{% else %}Add Pantry Item{% endif %}</h1>
+        <p class="form-subtitle">
+            {% if item %}
+                Update quantity, opened status, and dates for this item.
+            {% else %}
+                Add ingredients you have at home to improve recipe filtering.
+            {% endif %}
+        </p>
+    </div>
 
     <div class="form-card">
-        <div class="form-header">
-            <h2>
-                {% if item %}
-                    Edit Pantry Item: {{ item.ingredient.name }}
-                {% else %}
-                    Add Pantry Item
-                {% endif %}
-            </h2>
-        </div>
-
         <form method="post">
             {% csrf_token %}
 
@@ -147,14 +203,13 @@
                 <label class="form-label" for="{{ form.ingredient.id_for_label }}">Ingredient *</label>
                 {{ form.ingredient }}
                 {% if form.ingredient.errors %}
-                    <div class="text-danger small mt-1">{{ form.ingredient.errors }}</div>
+                    <div class="text-danger small mt-2">{{ form.ingredient.errors }}</div>
                 {% endif %}
 
-                <span class="help-text d-flex align-items-center gap-2">
+                <span class="help-text">
                     Choose an ingredient to add to your pantry.
-                    <a href="{% url 'ingredient_create' %}?next={{ request.path }}"
-                       class="create-link">
-                        + Create new ingredient
+                    <a href="{% url 'ingredient_create' %}?next={{ request.path }}" class="create-link">
+                        <i class="bi bi-plus-circle"></i> Create new ingredient
                     </a>
                 </span>
             </div>
@@ -168,79 +223,65 @@
                 </div>
 
                 {% if form.quantity.errors %}
-                    <div class="text-danger small mt-1">{{ form.quantity.errors }}</div>
+                    <div class="text-danger small mt-2">{{ form.quantity.errors }}</div>
                 {% endif %}
-
                 <span class="help-text">Uses ingredient base unit</span>
             </div>
 
             <div class="form-row">
-                <label class="form-label" for="{{ form.is_opened.id_for_label }}">
-                    Opened
-                </label>
-                <div class="form-check">
+                <label class="form-label" for="{{ form.is_opened.id_for_label }}">Opened</label>
+                <div class="check-wrap">
                     {{ form.is_opened }}
-                    <label class="form-check-label ms-2">
-                        Item has been opened
-                    </label>
+                    <span class="text-muted">Item has been opened</span>
                 </div>
             </div>
 
-            <div class="row form-row">
-                <div class="col-md-6">
-                    <label class="form-label" for="{{ form.purchased_at.id_for_label }}">
-                        Purchased at
-                    </label>
+            <div class="row">
+                <div class="col-md-6 form-row">
+                    <label class="form-label" for="{{ form.purchased_at.id_for_label }}">Purchased at</label>
                     {{ form.purchased_at }}
                     {% if form.purchased_at.errors %}
-                        <div class="text-danger small mt-1">{{ form.purchased_at.errors }}</div>
+                        <div class="text-danger small mt-2">{{ form.purchased_at.errors }}</div>
                     {% endif %}
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label" for="{{ form.expires_at.id_for_label }}">
-                        Expires at
-                    </label>
+                <div class="col-md-6 form-row">
+                    <label class="form-label" for="{{ form.expires_at.id_for_label }}">Expires at</label>
                     {{ form.expires_at }}
                     {% if form.expires_at.errors %}
-                        <div class="text-danger small mt-1">{{ form.expires_at.errors }}</div>
+                        <div class="text-danger small mt-2">{{ form.expires_at.errors }}</div>
                     {% endif %}
                 </div>
             </div>
 
-
             <div class="form-actions">
-                <a href="{% url 'pantry' %}" class="btn btn-secondary">Cancel</a>
+                <a href="{% url 'pantry' %}" class="btn-cancel">
+                    Cancel
+                </a>
 
-                {% if item %}
-                    <button type="submit" class="btn btn-green">Save Changes</button>
-                {% else %}
-                    <button type="submit" class="btn btn-green">Add to Pantry</button>
-                {% endif %}
+                <button type="submit" class="btn-submit">
+                    {% if item %}<i class="bi bi-check2-circle"></i> Save Changes{% else %}<i class="bi bi-plus-lg"></i> Add to Pantry{% endif %}
+                </button>
             </div>
         </form>
     </div>
-
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     const ingredientSelect = document.getElementById('id_ingredient');
     const unitSuffix = document.getElementById('unit_suffix');
 
     function updateUnit() {
-      if (!ingredientSelect || !unitSuffix) return;
-      const opt = ingredientSelect.selectedOptions && ingredientSelect.selectedOptions[0];
-      unitSuffix.textContent = (opt && opt.dataset && opt.dataset.unit) ? opt.dataset.unit : '';
+        if (!ingredientSelect || !unitSuffix) return;
+        const opt = ingredientSelect.selectedOptions && ingredientSelect.selectedOptions[0];
+        unitSuffix.textContent = (opt && opt.dataset && opt.dataset.unit) ? opt.dataset.unit : '';
     }
 
     if (ingredientSelect) {
-      ingredientSelect.addEventListener('change', updateUnit);
-      updateUnit();
+        ingredientSelect.addEventListener('change', updateUnit);
+        updateUnit();
     }
-  });
+});
 </script>
-
 {% endblock %}
-
-

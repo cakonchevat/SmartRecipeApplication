@@ -6,78 +6,51 @@
 {% block extra_css %}
 <style>
     .delete-container {
-        max-width: 600px;
-        margin: 60px auto 80px;
-        padding: 0 40px;
+        max-width: 500px;
+        margin: 80px auto;
+        padding: 0 20px;
     }
 
     .delete-card {
         background: white;
-        border: 1px solid #f0f0f0;
-        border-radius: 20px;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
         padding: 40px;
-        border-left: 6px solid #ff4444;
-    }
-
-    .delete-header {
-        margin-bottom: 32px;
-        padding-bottom: 24px;
-        border-bottom: 2px solid #ffe6e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
     .delete-icon {
-        width: 64px;
-        height: 64px;
+        width: 56px;
+        height: 56px;
         background: #ffe6e6;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 20px;
-        color: #ff4444;
-        font-size: 32px;
+        margin: 0 auto 24px;
+        color: #091057;
+        font-size: 28px;
     }
 
     .delete-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 32px;
-        font-weight: 900;
+        font-size: 24px;
+        font-weight: 700;
         color: var(--text-dark);
-        margin-bottom: 12px;
+        margin-bottom: 16px;
         text-align: center;
     }
 
     .delete-subtitle {
-        font-size: 16px;
+        font-size: 15px;
         color: var(--text-muted);
         text-align: center;
-    }
-
-    .object-name {
-        color: #ff4444;
-        font-weight: 700;
-    }
-
-    .warning-box {
-        background: #fff5f5;
-        border: 2px solid #ffcccc;
-        border-radius: 12px;
-        padding: 20px;
+        line-height: 1.6;
         margin-bottom: 32px;
     }
 
-    .warning-box strong {
-        color: #cc0000;
-        display: block;
-        margin-bottom: 8px;
-        font-size: 15px;
-    }
-
-    .warning-box p {
-        margin: 0;
-        color: #666;
-        font-size: 14px;
-        line-height: 1.6;
+    .object-name {
+        color: var(--text-dark);
+        font-weight: 600;
     }
 
     .delete-actions {
@@ -95,14 +68,19 @@
         font-weight: 600;
         text-decoration: none;
         transition: all 0.3s ease;
+        font-size: 15px;
+        display: inline-block;
     }
 
     .btn-cancel-delete:hover {
-        border-color: var(--text-dark);
+        background: #f5f5f5;
+        border-color: #d0d0d0;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
 
     .btn-confirm-delete {
-        background: #ff4444;
+        background: #FF5555;
         color: white;
         border: none;
         padding: 14px 32px;
@@ -110,12 +88,24 @@
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
+        font-size: 15px;
     }
 
     .btn-confirm-delete:hover {
-        background: #cc0000;
+        background: #FF937E;
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 68, 68, 0.4);
+        box-shadow: 0 8px 20px rgba(9, 16, 87, 0.25);
+    }
+
+    @media (max-width: 576px) {
+        .delete-actions {
+            flex-direction: column-reverse;
+        }
+
+        .btn-cancel-delete,
+        .btn-confirm-delete {
+            width: 100%;
+        }
     }
 </style>
 {% endblock %}
@@ -123,32 +113,21 @@
 {% block content %}
 <div class="delete-container">
     <div class="delete-card">
-        <div class="delete-header">
-            <div class="delete-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <h1 class="delete-title">Delete {{ object_type }}?</h1>
-            <p class="delete-subtitle">
-                You are about to permanently delete: <span class="object-name">{{ object_name }}</span>
-            </p>
+        <div class="delete-icon">
+            <i class="bi bi-exclamation-triangle"></i>
         </div>
 
-        {% if warning %}
-        <div class="warning-box">
-            <strong><i class="bi bi-shield-exclamation me-2"></i>Warning</strong>
-            <p>{{ warning }}</p>
-        </div>
-        {% endif %}
+        <h1 class="delete-title">Delete {{ object_type }}</h1>
+
+        <p class="delete-subtitle">
+            Are you sure you would like to delete the {{ object_type|lower }} '<span class="object-name">{{ object_name }}</span>'?
+        </p>
 
         <form method="post">
             {% csrf_token %}
             <div class="delete-actions">
-                <a href="{{ cancel_url }}" class="btn-cancel-delete">
-                    <i class="bi bi-x-lg me-2"></i>Cancel
-                </a>
-                <button type="submit" class="btn-confirm-delete">
-                    <i class="bi bi-trash me-2"></i>Yes, Delete
-                </button>
+                <a href="{{ cancel_url }}" class="btn-cancel-delete">Cancel</a>
+                <button type="submit" class="btn-confirm-delete">Yes, Delete</button>
             </div>
         </form>
     </div>

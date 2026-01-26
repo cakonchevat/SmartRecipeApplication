@@ -1,6 +1,4 @@
 from django.http import JsonResponse
-from django.utils.safestring import mark_safe
-
 from smart_recipe_app.services import process_pantry_scan
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -8,7 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from smart_recipe_app.forms import *
 from smart_recipe_app.models import *
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
@@ -133,8 +131,14 @@ def diet_delete(request, pk):
 # ===== INGREDIENT VIEWS =====
 @login_required
 def ingredient_list(request):
-    ingredients = Ingredient.objects.prefetch_related("diets", "allergens").order_by("name")
-    return render(request, "ingredients/ingredients.html", {"ingredients": ingredients})
+    q = (request.GET.get("q") or "").strip()
+
+    ingredients = (Ingredient.objects.prefetch_related("diets", "allergens").order_by("name"))
+
+    if q:
+        ingredients = ingredients.filter(name__icontains=q)
+
+    return render(request, "ingredients/ingredients.html", {"ingredients": ingredients, "q": q,})
 
 
 @login_required
@@ -234,11 +238,45 @@ def recipe_list(request):
 @login_required
 def recipe_detail(request, pk):
     recipe = get_object_or_404(
-        Recipe.objects.prefetch_related("recipe_ingredients__ingredient"),
+        Recipe.objects.prefetch_related(
+            Prefetch(
+                "recipe_ingredients",
+                queryset=RecipeIngredientRelation.objects.select_related("ingredient")
+            )
+        ),
         pk=pk
     )
-    relations = recipe.recipe_ingredients.all()
-    return render(request, "recipes/recipe_detail.html", {"recipe": recipe, "relations": relations})
+
+    relations = list(recipe.recipe_ingredients.all())
+
+    total_calories = 0.0
+    for rel in relations:
+        ing = rel.ingredient
+
+        base_amount = float(ing.base_amount or 1)  # avoid division by 0
+        calories_base = float(ing.calories_per_base_amount or 0)
+
+        calories_per_unit = calories_base / base_amount
+        rel.calories = float(rel.quantity or 0) * calories_per_unit
+
+        total_calories += rel.calories
+
+    calories_per_serving = None
+    if recipe.no_of_servings:
+        servings = float(recipe.no_of_servings)
+        if servings > 0:
+            calories_per_serving = total_calories / servings
+
+    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+    is_in_wishlist = wishlist.recipes.filter(pk=recipe.pk).exists()
+
+    return render(request, "recipes/recipe_detail.html", {
+        "recipe": recipe,
+        "relations": relations,
+        "total_calories": total_calories,
+        "calories_per_serving": calories_per_serving,
+        "is_in_wishlist": is_in_wishlist,
+    })
 
 
 @login_required
@@ -261,13 +299,11 @@ def recipe_edit(request, pk):
     recipe_form = RecipeForm(request.POST or None, request.FILES or None, instance=recipe)
     ingredient_form = RecipeIngredientRelationForm(request.POST or None)
 
-    # Save recipe fields
     if request.method == "POST" and "save_recipe" in request.POST:
         if recipe_form.is_valid():
             recipe_form.save()
-            return redirect("recipe_edit", pk=pk)
+            return redirect("recipe_list")
 
-    # Add ingredient
     if request.method == "POST" and "add_ingredient" in request.POST:
         if ingredient_form.is_valid():
             rel = ingredient_form.save(commit=False)
@@ -288,22 +324,41 @@ def recipe_edit(request, pk):
 def recipe_edit_ingredients(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
 
+    relations = recipe.recipe_ingredients.select_related("ingredient").all()
+
+    edit_id = request.GET.get("edit")
+    editing_rel = None
+    if edit_id:
+        editing_rel = get_object_or_404(
+            RecipeIngredientRelation,
+            pk=edit_id,
+            recipe=recipe
+        )
+
     if request.method == "POST":
-        form = RecipeIngredientRelationForm(request.POST)
+        # if editing_rel exists -> update that row
+        if editing_rel:
+            form = RecipeIngredientRelationForm(request.POST, instance=editing_rel)
+        else:
+            form = RecipeIngredientRelationForm(request.POST)
+
         if form.is_valid():
             rel = form.save(commit=False)
             rel.recipe = recipe
             rel.save()
-            return redirect("recipe_edit_ingredients", pk=pk)
+            return redirect("recipe_edit_ingredients", pk=pk)  # clears ?edit
     else:
-        form = RecipeIngredientRelationForm()
-
-    relations = recipe.recipe_ingredients.select_related('ingredient').all()
+        # prefill when editing
+        if editing_rel:
+            form = RecipeIngredientRelationForm(instance=editing_rel)
+        else:
+            form = RecipeIngredientRelationForm()
 
     return render(request, "recipes/recipe_edit_ingredients.html", {
         "recipe": recipe,
         "form": form,
-        "relations": relations
+        "relations": relations,
+        "editing_rel": editing_rel,
     })
 
 
@@ -351,37 +406,35 @@ def toggle_wishlist(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
-    is_in_wishlist = wishlist.recipes.filter(pk=recipe.pk).exists()
-
-    if is_in_wishlist:
+    if wishlist.recipes.filter(pk=recipe.pk).exists():
         wishlist.recipes.remove(recipe)
-        action = 'removed'
+        action = "removed"
     else:
         wishlist.recipes.add(recipe)
-        action = 'added'
+        action = "added"
 
-    return JsonResponse({'status': 'success', 'action': action})
+    return JsonResponse({"status": "success", "action": action})
 
 
 @login_required
 @require_POST
 def add_recipe_to_today_plan(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
+
     plan, _ = DailyPlan.objects.get_or_create(
         user=request.user,
         date=date.today(),
-        defaults={"wanted_calories": 2000}
+        defaults={"wanted_calories": 2000},
     )
 
-    # Toggle behavior
     if plan.recipes.filter(pk=recipe.pk).exists():
         plan.recipes.remove(recipe)
-        action = 'removed'
+        action = "removed"
     else:
         plan.recipes.add(recipe)
-        action = 'added'
+        action = "added"
 
-
+    return JsonResponse({"status": "success", "action": action})
 
 # ===== PANTRY VIEWS =====
 def _get_user_pantry(user):

@@ -5,120 +5,269 @@
 
 {% block extra_css %}
 <style>
-    .items-card {
-        background: white;
-        padding: 25px 30px;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
-        border-left: 6px solid #28a745;
+    .pantry-container{
+        max-width: 1200px;
+        margin: 60px auto 80px;
+        padding: 0 40px;
     }
 
-    .btn-green {
-        background: #28a745;
+    .page-header{
+        margin-bottom: 40px;
+    }
+
+    .page-title{
+        font-family: 'Playfair Display', serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle{
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .pantry-card{
+        background: white;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        padding: 32px;
+    }
+
+    .btn-add{
+        background: var(--vintage-grape);
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: background 0.2s ease;
-    }
-
-    .btn-green:hover {
-        background: #218838;
-        color: white;
-    }
-
-    .filter-section {
-        background: #f8f9fa;
-        padding: 18px 20px;
-        border-radius: 12px;
-        margin-bottom: 25px;
-        color: #666;
-        font-size: 14px;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-    }
-
-    .modern-table thead th {
-        background: #f1f3f5;
-        padding: 14px 16px;
+        padding: 14px 32px;
+        border-radius: 50px;
         font-weight: 600;
-        font-size: 14px;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .modern-table tbody td {
-        padding: 14px 16px;
-        font-size: 14px;
-        border-bottom: 1px solid #f0f0f0;
-        vertical-align: middle;
-    }
-
-    .modern-table tbody tr:hover td {
-        background: #fbfbfb;
-    }
-
-    .qty-badge {
+        text-decoration: none;
+        transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-weight: 600;
-    }
-
-    .actions-col {
-        width: 200px;
-        text-align: right;
+        gap: 10px;
         white-space: nowrap;
     }
 
-    .empty-state {
+    .btn-add:hover{
+        background: var(--bright-lavender);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
+    }
+
+    .btn-secondary-pill{
+        background: white;
+        color: var(--text-dark);
+        border: 2px solid #e8e8e8;
+        padding: 12px 26px;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+    }
+
+    .btn-secondary-pill:hover{
+        border-color: var(--text-dark);
+        transform: translateY(-1px);
+    }
+
+    .table-wrap{
+        border: 1px solid #f0f0f0;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    table.pantry-table{
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+    }
+
+    .pantry-table thead th{
+        background: #fbfbfb;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-muted);
+        padding: 14px 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+
+    .pantry-table tbody td{
+        padding: 14px 16px;
+        border-bottom: 1px solid #f5f5f5;
+        vertical-align: middle;
+        font-size: 14px;
+        color: var(--text-dark);
+    }
+
+    .pantry-table tbody tr:hover td{
+        background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
+    }
+
+    .ingredient-name{
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .muted-small{
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .qty-pill{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fafafa;
+        border: 1px solid #f0f0f0;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        color: var(--text-dark);
+        white-space: nowrap;
+    }
+
+    .status-pill{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .status-opened{
+        background: rgba(46, 204, 113, 0.12);
+        color: #1f7a45;
+        border: 1px solid rgba(46, 204, 113, 0.25);
+    }
+
+    .status-sealed{
+        background: rgba(149, 165, 166, 0.14);
+        color: #667171;
+        border: 1px solid rgba(149, 165, 166, 0.25);
+    }
+
+    .expired{
+        color: #ff4444;
+        font-weight: 800;
+    }
+
+    .actions{
+        display: inline-flex;
+        gap: 10px;
+        justify-content: flex-end;
+        white-space: nowrap;
+    }
+
+    .btn-action{
+        background: white;
+        color: var(--text-dark);
+        border: 1px solid #e8e8e8;
+        padding: 8px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-action:hover{
+        border-color: var(--vintage-grape);
+        color: var(--vintage-grape);
+        transform: translateY(-1px);
+    }
+
+    .btn-danger-action{
+        border-color: rgba(255, 68, 68, 0.35);
+        color: #ff4444;
+    }
+
+    .btn-danger-action:hover{
+        background: #ff4444;
+        color: white;
+        border-color: #ff4444;
+    }
+
+    .empty-state{
         text-align: center;
-        padding: 50px 0;
+        padding: 80px 40px;
+    }
+
+    .empty-state-icon{
+        width: 80px;
+        height: 80px;
+        background: #f5f5f5;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+
+    .empty-state-icon i{
+        font-size: 40px;
+        color: #ddd;
+    }
+
+    .empty-state h3{
+        font-family: 'Playfair Display', serif;
+        font-size: 28px;
+        font-weight: 900;
+        margin-bottom: 12px;
+    }
+
+    @media (max-width: 768px){
+        .page-title{ font-size: 36px; }
+        .pantry-container{ padding: 0 18px; }
+        .pantry-card{ padding: 22px; }
+        .actions{ width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="pantry-container">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="page-title">My Pantry</h1>
+                <p class="page-subtitle">Track what you have at home, quantities, and expiration dates</p>
+            </div>
 
-    {# HEADER – FIRST ADD BUTTON #}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="m-0">My Pantry</h2>
-        <div class="d-flex gap-2">
-            <a href="{% url 'pantry_scan' %}" class="btn btn-outline-success">
-                📷 Scan Pantry
-            </a>
-            <a href="{% url 'pantry_add_item' %}" class="btn btn-green">
-                + Add Pantry Item
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'pantry_scan' %}" class="btn-secondary-pill">
+                    <i class="bi bi-camera"></i>
+                    Scan Pantry
+                </a>
+                <a href="{% url 'pantry_add_item' %}" class="btn-add">
+                    <i class="bi bi-plus-lg"></i>
+                    Add Pantry Item
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="items-card">
-
-        {# INFO SECTION (NO BUTTONS HERE) #}
-        <div class="filter-section">
-            {% if items %}
-                You have <strong>{{ items|length }}</strong> item{{ items|length|pluralize }} in your pantry.
-            {% else %}
-                Your pantry is currently empty.
-            {% endif %}
-        </div>
-
+    <div class="pantry-card">
         {% if items %}
-            <div class="table-responsive">
-                <table class="modern-table">
+            <div class="table-responsive table-wrap">
+                <table class="pantry-table">
                     <thead>
                         <tr>
                             <th>Ingredient</th>
@@ -126,84 +275,84 @@
                             <th>Opened</th>
                             <th>Purchased</th>
                             <th>Expires</th>
-                            <th class="actions-col">Actions</th>
+                            <th style="text-align:right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in items %}
-                            <tr>
-                                <td>
-                                    <strong>{{ item.ingredient.name }}</strong>
-                                    <div class="text-muted" style="font-size: 12px;">
-                                        Unit: {{ item.ingredient.base_unit }}
-                                    </div>
-                                </td>
+                        <tr>
+                            <td>
+                                <div class="ingredient-name">{{ item.ingredient.name }}</div>
+                                <div class="muted-small">Unit: {{ item.ingredient.base_unit }}</div>
+                            </td>
 
-                                <td>
-                                    <span class="qty-badge">
-                                        {{ item.quantity }} {{ item.ingredient.base_unit }}
+                            <td>
+                                <span class="qty-pill">
+                                    <i class="bi bi-box-seam"></i>
+                                    {{ item.quantity }} {{ item.ingredient.base_unit }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if item.is_opened %}
+                                    <span class="status-pill status-opened">
+                                        <i class="bi bi-unlock"></i> Opened
                                     </span>
-                                </td>
+                                {% else %}
+                                    <span class="status-pill status-sealed">
+                                        <i class="bi bi-lock"></i> Sealed
+                                    </span>
+                                {% endif %}
+                            </td>
 
-                                <td>
-                                    {% if item.is_opened %}
-                                        <span class="badge bg-success">Opened</span>
+                            <td>
+                                {% if item.purchased_at %}
+                                    {{ item.purchased_at|date:"d M Y" }}
+                                {% else %}
+                                    <span class="muted-small">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if item.expires_at %}
+                                    {% if item.expires_at < today %}
+                                        <span class="expired">{{ item.expires_at|date:"d M Y" }}</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Sealed</span>
+                                        {{ item.expires_at|date:"d M Y" }}
                                     {% endif %}
-                                </td>
+                                {% else %}
+                                    <span class="muted-small">—</span>
+                                {% endif %}
+                            </td>
 
-                                <td>
-                                    {% if item.purchased_at %}
-                                        {{ item.purchased_at|date:"d M Y" }}
-                                    {% else %}
-                                        <span class="text-muted">—</span>
-                                    {% endif %}
-                                </td>
-
-                                <td>
-                                    {% if item.expires_at %}
-                                        {% if item.expires_at < today %}
-                                            <span class="text-danger fw-bold">
-                                                {{ item.expires_at|date:"d M Y" }}
-                                            </span>
-                                        {% else %}
-                                            {{ item.expires_at|date:"d M Y" }}
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="text-muted">—</span>
-                                    {% endif %}
-                                </td>
-
-                                <td class="actions-col">
-                                    <a href="{% url 'pantry_edit_item' item.id %}"
-                                       class="btn btn-sm btn-outline-primary">
-                                        Edit
+                            <td style="text-align:right;">
+                                <div class="actions">
+                                    <a href="{% url 'pantry_edit_item' item.id %}" class="btn-action">
+                                        <i class="bi bi-pencil"></i> Edit
                                     </a>
-
-                                    <a href="{% url 'pantry_delete_item' item.id %}"
-                                       class="btn btn-sm btn-danger">
-                                        Delete
+                                    <a href="{% url 'pantry_delete_item' item.id %}" class="btn-action btn-danger-action">
+                                        <i class="bi bi-trash"></i> Delete
                                     </a>
-                                </td>
-                            </tr>
+                                </div>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
         {% else %}
-            {# EMPTY STATE – SECOND ADD BUTTON #}
             <div class="empty-state">
-                <p class="text-muted">
-                    No pantry items yet. Add your first ingredient to start cooking!
-                </p>
-                <a href="{% url 'pantry_add_item' %}" class="btn btn-green mt-3">
-                    + Add Your First Pantry Item
+                <div class="empty-state-icon">
+                    <i class="bi bi-basket"></i>
+                </div>
+                <h3>No pantry items yet</h3>
+                <p class="text-muted">Add your first ingredient to start cooking recipes from your pantry.</p>
+                <a href="{% url 'pantry_add_item' %}" class="btn-add mt-3">
+                    <i class="bi bi-plus-lg"></i>
+                    Add Your First Pantry Item
                 </a>
             </div>
         {% endif %}
-
     </div>
 </div>
 {% endblock %}

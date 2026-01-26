@@ -295,7 +295,7 @@
                     Add to Today
                 </button>
             </form>
-            <form method="post" action="{% url 'toggle_wishlist' recipe.id %}" style="margin:0;">
+            <form method="post" action="{% url 'wishlist_toggle' recipe.id %}" style="margin:0;">
                 {% csrf_token %}
                 <button type="submit" class="btn-action btn-secondary-action">
                     <i class="bi bi-heart{% if is_in_wishlist %}-fill{% endif %}"></i>
@@ -338,7 +338,7 @@
             <div class="stat-icon">
                 <i class="bi bi-fire"></i>
             </div>
-            <div class="stat-value">{{ recipe.total_calories|floatformat:0 }}</div>
+            <div class="stat-value">{{ total_calories|floatformat:0 }}</div>
             <div class="stat-label">Total Calories</div>
         </div>
 
@@ -347,8 +347,8 @@
                 <i class="bi bi-trophy"></i>
             </div>
             <div class="stat-value">
-                {% if recipe.calories_per_serving %}
-                {{ recipe.calories_per_serving|floatformat:0 }}
+                {% if calories_per_serving %}
+                {{ calories_per_serving|floatformat:0 }}
                 {% else %}
                 -
                 {% endif %}

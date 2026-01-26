@@ -2,65 +2,241 @@
 
 {% block title %}Review Scan{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
-  <div class="items-card">
-    <h2>Review scan</h2>
-    <p class="text-muted">Approve items to add to pantry.</p>
+{% block extra_css %}
+<style>
+  .review-container{
+    max-width: 1200px;
+    margin: 60px auto 80px;
+    padding: 0 40px;
+  }
 
+  .page-header{
+    margin-bottom: 40px;
+  }
+
+  .page-title{
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+  }
+
+  .page-subtitle{
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+
+  .review-card{
+    background: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 20px;
+    padding: 32px;
+  }
+
+    .scan-image{
+      display: block;
+      max-width: 100%;
+      width: auto;              /* <- key */
+      height: auto;             /* <- key */
+      max-height: 420px;
+      object-fit: contain;      /* <- keep full image visible */
+      border-radius: 16px;
+      border: 1px solid #f0f0f0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      margin: 18px auto;        /* <- center */
+    }
+
+  .table-wrap{
+    border: 1px solid #f0f0f0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    margin-top: 14px;
+  }
+
+  table.review-table{
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+  }
+
+  .review-table thead th{
+    background: #fbfbfb;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 14px 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .review-table tbody td{
+    padding: 14px 16px;
+    border-bottom: 1px solid #f5f5f5;
+    vertical-align: middle;
+    font-size: 14px;
+    color: var(--text-dark);
+  }
+
+  .review-table tbody tr:hover td{
+    background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
+  }
+
+  .form-control, .form-select{
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus, .form-select:focus{
+    border-color: var(--vintage-grape);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(73, 65, 109, 0.1);
+  }
+
+  .pill{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    color: var(--text-muted);
+  }
+
+  .form-actions{
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+  }
+
+  .btn-submit{
+    background: var(--vintage-grape);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-submit:hover{
+    background: var(--bright-lavender);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
+  }
+
+  .btn-cancel{
+    background: white;
+    color: var(--text-dark);
+    border: 2px solid #e8e8e8;
+    padding: 12px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-cancel:hover{
+    border-color: var(--text-dark);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px){
+    .review-container{ padding: 0 18px; }
+    .page-title{ font-size: 36px; }
+    .review-card{ padding: 22px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+  <div class="page-header">
+    <h1 class="page-title">Review Scan</h1>
+    <p class="page-subtitle">Approve detected items to add to your pantry</p>
+  </div>
+
+  <div class="review-card">
     {% if scan.image %}
-      <div class="my-3">
-        <img src="{{ scan.image.url }}" alt="Scan image" style="max-width:100%; border-radius:16px;">
-      </div>
+      <img src="{{ scan.image.url }}" alt="Scan image" class="scan-image">
     {% endif %}
 
     <form method="post">
       {% csrf_token %}
 
-      <table class="modern-table">
-        <thead>
-          <tr>
-            <th>Detected</th>
-            <th>Confidence</th>
-            <th>Quantity</th>
-            <th>Action</th>
-          </tr>
-        </thead>
+      <div class="table-responsive table-wrap">
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>Detected</th>
+              <th>Confidence</th>
+              <th>Quantity</th>
+              <th>Action</th>
+            </tr>
+          </thead>
 
-        <tbody>
-        {% for d in detections %}
-          <tr>
-            <td><strong>{{ d.label }}</strong></td>
-            <td>{{ d.confidence|floatformat:2 }}</td>
+          <tbody>
+          {% for d in detections %}
+            <tr>
+              <td><strong>{{ d.label }}</strong></td>
+              <td>
+                <span class="pill">
+                  <i class="bi bi-bar-chart"></i> {{ d.confidence|floatformat:2 }}
+                </span>
+              </td>
 
-            <td>
-              <input
-                type="number"
-                step="1"
-                min="1"
-                name="quantity_{{ d.id }}"
-                class="form-control"
-                value="{{ d.quantity_guess|default:1|floatformat:0 }}"
-                style="width: 120px;"
-              >
-            </td>
+              <td>
+                <input
+                  type="number"
+                  step="1"
+                  min="1"
+                  name="quantity_{{ d.id }}"
+                  class="form-control"
+                  value="{{ d.quantity_guess|default:1|floatformat:0 }}"
+                  style="max-width: 160px;"
+                >
+              </td>
 
-            <td>
-              <select name="action_{{ d.id }}" class="form-select" style="width: 140px;">
-                <option value="accept">Accept</option>
-                <option value="reject">Reject</option>
-              </select>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-
-      <div class="mt-3 d-flex justify-content-end gap-2">
-        <a href="{% url 'pantry' %}" class="btn btn-secondary">Cancel</a>
-        <button class="btn btn-green" type="submit">Apply</button>
+              <td>
+                <select name="action_{{ d.id }}" class="form-select" style="max-width: 180px;">
+                  <option value="accept">Accept</option>
+                  <option value="reject">Reject</option>
+                </select>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
       </div>
 
+      <div class="form-actions">
+        <a href="{% url 'pantry' %}" class="btn-cancel">Cancel</a>
+        <button class="btn-submit" type="submit">
+          <i class="bi bi-check2-circle"></i> Apply
+        </button>
+      </div>
     </form>
   </div>
 </div>

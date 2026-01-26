@@ -4,157 +4,453 @@
 
 {% block extra_css %}
 <style>
-    .items-card {
+    .wishlist-container {
+        max-width: 1200px;
+        margin: 60px auto 80px;
+        padding: 0 40px;
+    }
+
+    .page-header {
+        margin-bottom: 40px;
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .wishlist-card {
         background: white;
-        padding: 25px 30px;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.10);
-        border-left: 6px solid #dc3545;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        padding: 32px;
     }
 
     .wishlist-list {
         list-style: none;
         padding: 0;
-        margin: 0;
+        margin: 24px 0 0 0;
     }
 
     .wishlist-item {
-        background: #fff;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 12px;
+        background: #fafafa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+
+    .wishlist-item:hover {
+        background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .wishlist-left {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        flex: 1;
+    }
+
+    .wishlist-thumb {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: #e8e8e8;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .wishlist-thumb-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        background: #e8e8e8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .wishlist-info {
+        flex: 1;
     }
 
     .wishlist-title {
-        font-weight: 600;
-        font-size: 16px;
-        margin-bottom: 4px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .wishlist-heart {
+        color: var(--sweet-salmon);
+        font-size: 18px;
+    }
+
+    .btn-heart-remove {
+        background: white;
+        color: var(--sweet-salmon);
+        border: 2px solid var(--sweet-salmon);
+        padding: 10px 18px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-heart-remove:hover {
+        background: var(--sweet-salmon);
+        color: white;
+        transform: translateY(-2px);
     }
 
     .wishlist-meta {
-        font-size: 13px;
-        color: #777;
+        display: flex;
+        gap: 20px;
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .meta-item i {
+        color: var(--vintage-grape);
     }
 
     .wishlist-actions {
         display: flex;
         gap: 10px;
-    }
-
-    .wishlist-left {
-        display: flex;
-        gap: 14px;
         align-items: center;
     }
 
-    .wishlist-thumb {
-        width: 72px;
-        height: 72px;
-        border-radius: 12px;
-        object-fit: cover;
-        background: #f2f2f2;
-        flex: 0 0 72px;
+    .btn-view-wishlist {
+        background: #3B9797;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .wishlist-thumb-placeholder {
-        width: 72px;
-        height: 72px;
-        border-radius: 12px;
-        background: #f2f2f2;
+    .btn-view-wishlist:hover {
+        background: #0F828C;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(73, 65, 109, 0.3);
+    }
+
+    .btn-remove-wishlist {
+        background: white;
+        color: #3B9797;
+        border: 2px solid #3B9797;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-remove-wishlist:hover {
+        background: #8A2D3B;
+        color: white;
+        border: none;
+        transform: translateY(-2px);
+    }
+
+    .btn-browse {
+        background: #3B9797;
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-browse:hover {
+        background: #0F828C;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
+    }
+
+    .btn-browse i {
+        font-size: 18px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 40px;
+    }
+
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        background: #f5f5f5;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #999;
-        font-size: 12px;
-        flex: 0 0 72px;
+        margin: 0 auto 24px;
     }
 
+    .empty-state-icon i {
+        font-size: 40px;
+        color: #ddd;
+    }
+
+    .empty-state h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 28px;
+        font-weight: 900;
+        margin-bottom: 12px;
+    }
+
+    .btn-browse-empty {
+        background: #3B9797;
+        color: white;
+        border: none;
+        padding: 16px 36px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 16px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-browse-empty:hover {
+        background: #0F828C;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
+    }
+
+    .btn-browse-empty i {
+        font-size: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .wishlist-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .wishlist-left {
+            width: 100%;
+        }
+
+        .wishlist-actions {
+            width: 100%;
+            justify-content: stretch;
+        }
+
+        .btn-view-wishlist,
+        .btn-remove-wishlist {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .page-title {
+            font-size: 36px;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="m-0">My Wishlist</h2>
-        <a href="{% url 'recipe_list' %}" class="btn btn-outline-secondary">
-            Browse Recipes
-        </a>
+<div class="wishlist-container">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="page-title">My Wishlist</h1>
+                <p class="page-subtitle">Recipes saved for later</p>
+            </div>
+            <a href="{% url 'recipe_list' %}" class="btn-browse">
+                <i class="bi bi-search"></i>
+                Browse Recipes
+            </a>
+        </div>
     </div>
 
-    <div class="items-card">
-
+    <div class="wishlist-card">
         {% if wishlist_recipes %}
-            <p class="text-muted mb-3">
-                Recipes you’ve saved to cook later.
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">
+                You have <strong>{{ wishlist_recipes|length }}</strong> recipe{{ wishlist_recipes|length|pluralize }} saved
             </p>
 
             <ul class="wishlist-list">
                 {% for recipe in wishlist_recipes %}
-                    <li class="wishlist-item">
+                <li class="wishlist-item" data-recipe-id="{{ recipe.id }}">
+                    <div class="wishlist-left">
+                        {% if recipe.image %}
+                        <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="wishlist-thumb">
+                        {% else %}
+                        <div class="wishlist-thumb-placeholder">
+                            <i class="bi bi-image" style="font-size: 32px; opacity: 0.3;"></i>
+                        </div>
+                        {% endif %}
 
-                        <div class="wishlist-left">
-                            {% if recipe.image %}
-                                <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="wishlist-thumb">
-                            {% else %}
-                                <div class="wishlist-thumb-placeholder">No image</div>
-                            {% endif %}
+                        <div class="wishlist-info">
+                            <div class="wishlist-title">
+                                <i class="bi bi-heart-fill wishlist-heart"></i>
+                                {{ recipe.name }}
+                            </div>
 
-                            <div>
-                                <div class="wishlist-title">
-                                    {{ recipe.name }}
+                            <div class="wishlist-meta">
+                                <div class="meta-item">
+                                    <i class="bi bi-clock"></i>
+                                    <span>{{ recipe.preparation_time }} min</span>
                                 </div>
-                                <div class="wishlist-meta">
-                                    {{ recipe.preparation_time }} min ·
-                                    {% if recipe.calories_per_serving %}
-                                        {{ recipe.calories_per_serving|floatformat:0 }} kcal/serving
-                                    {% else %}
-                                        No calorie info
-                                    {% endif %}
+                                <div class="meta-item">
+                                    <i class="bi bi-people"></i>
+                                    <span>{{ recipe.no_of_servings }} servings</span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="bi bi-fire"></i>
+                                    <span>
+                                        {% if recipe.calories_per_serving %}
+                                        {{ recipe.calories_per_serving|floatformat:0 }} cal
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </span>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="wishlist-actions">
-                            <a href="{% url 'recipe_detail' recipe.id %}"
-                               class="btn btn-sm btn-outline-success">
-                                View
-                            </a>
+                    <div class="wishlist-actions">
+                        <a href="{% url 'recipe_detail' recipe.id %}" class="btn-view-wishlist">
+                            <i class="bi bi-eye"></i>
+                            View
+                        </a>
+                        <button type="button"
+                                class="btn-remove-wishlist"
+                                onclick="removeFromWishlist({{ recipe.id }}, '{{ recipe.name|escapejs }}', this)"
+                                title="Remove from wishlist">
+                            <i class="bi bi-trash"></i>
+                            Remove
+                        </button>
+                    </div>
 
-                            <form method="post" style="margin:0;">
-                                {% csrf_token %}
-                                <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
-                                <button type="submit"
-                                        name="remove"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Remove {{ recipe.name }} from wishlist?');">
-                                    Remove
-                                </button>
-                            </form>
-                        </div>
-
-                    </li>
+                </li>
                 {% endfor %}
             </ul>
-
         {% else %}
-            <div class="text-center py-5">
-                <p class="text-muted">
-                    Your wishlist is empty.
-                </p>
-                <p class="small text-muted">
-                    Save recipes you like by clicking the heart icon.
-                </p>
-                <a href="{% url 'recipe_list' %}" class="btn btn-green mt-3">
+            <div class="empty-state">
+                <i class="bi bi-heart"></i>
+                <h3>Your wishlist is empty</h3>
+                <p class="text-muted">Save recipes you love by clicking the heart icon</p>
+                <a href="{% url 'recipe_list' %}" class="btn-browse-empty mt-3">
+                    <i class="bi bi-search"></i>
                     Browse Recipes
                 </a>
             </div>
         {% endif %}
-
     </div>
 </div>
+
+<script>
+function removeFromWishlist(recipeId, recipeName, button) {
+    if (!confirm(`Remove "${recipeName}" from wishlist?`)) {
+        return;
+    }
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    fetch(`/recipes/${recipeId}/wishlist-toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (response.ok) {
+            // Remove the item with animation
+            const item = button.closest('.wishlist-item');
+            item.style.transition = 'all 0.3s ease';
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+
+            setTimeout(() => {
+                item.remove();
+
+                // Check if wishlist is now empty
+                const list = document.querySelector('.wishlist-list');
+                if (list && list.children.length === 0) {
+                    location.reload(); // Reload to show empty state
+                }
+            }, 300);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to remove recipe. Please try again.');
+    });
+}
+</script>
 {% endblock %}

@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import toggle_wishlist, add_recipe_to_today_plan
 
 urlpatterns = [
     # User
@@ -38,8 +39,8 @@ urlpatterns = [
     path("recipes/<int:pk>/remove-ingredient/<int:relation_id>/", views.recipe_remove_ingredient, name="recipe_remove_ingredient"),
     path("recipes/<int:pk>/delete/", views.recipe_delete, name="recipe_delete"),
 
-    path("recipes/<int:pk>/wishlist-toggle/", views.toggle_wishlist, name="toggle_wishlist"),
-    path("recipes/<int:pk>/add-to-today/", views.add_recipe_to_today_plan, name="add_recipe_to_today_plan"),
+    path("recipes/<int:pk>/wishlist-toggle/", toggle_wishlist, name="wishlist_toggle"),
+    path("recipes/<int:pk>/add-to-today-plan/", add_recipe_to_today_plan, name="add_recipe_to_today_plan"),
 
     # Pantry
     path('pantry/', views.pantry_list, name='pantry'),
