@@ -1,156 +1,193 @@
 {% extends "common/base.html" %}
 {% load static %}
 
+{% block title %}Home{% endblock %}
+
 {% block extra_css %}
 <style>
-/* Hero Section */
-.hero-section {
-    background: linear-gradient(to bottom, #fef9f5 0%, #ffffff 100%);
-    padding: 60px 0 80px;
-}
-
-.hero-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 40px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: center;
-}
-
-.hero-content {
-    padding-right: 40px;
-}
-
-.hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: white;
-    border: 1px solid #e8e8e8;
-    border-radius: 50px;
-    padding: 8px 20px;
-    font-size: 14px;
-    color: var(--sweet-salmon);
-    font-weight: 500;
-    margin-bottom: 24px;
-}
-
-.hero-badge i {
-    color: var(--sweet-salmon);
-}
-
-.hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 72px;
-    font-weight: 900;
-    line-height: 1.1;
-    color: var(--text-dark);
-    margin-bottom: 24px;
-}
-
-.hero-title .highlight {
-    font-style: italic;
-    color: var(--vintage-grape);
-}
-
-.hero-description {
-    font-size: 18px;
-    color: var(--text-muted);
-    line-height: 1.7;
-    margin-bottom: 40px;
-}
-
-.hero-actions {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 40px;
-}
-
-.btn-primary-custom {
-    background: var(--text-dark);
-    color: white;
-    border: none;
-    padding: 16px 32px;
-    border-radius: 50px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-block;
-}
-
-.btn-primary-custom:hover {
-    background: var(--vintage-grape);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.btn-outline-custom {
-    background: white;
-    color: var(--text-dark);
-    border: 2px solid var(--text-dark);
-    padding: 14px 32px;
-    border-radius: 50px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-block;
-}
-
-.btn-outline-custom:hover {
-    background: var(--text-dark);
-    color: white;
-}
-
-.hero-image-container {
+/* Layout */
+.home-hero {
+    background: linear-gradient(135deg, #fef9f5 0%, #fff5f8 50%, #f0f4ff 100%);
+    padding: 80px 0 60px;
     position: relative;
+    overflow: hidden;
 }
 
-.hero-main-image {
-    width: 100%;
-    height: 600px;
-    object-fit: cover;
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-}
-
-.hero-floating-badge {
+.home-hero::before {
+    content: '';
     position: absolute;
-    top: 24px;
-    right: 24px;
-    background: white;
-    padding: 16px 24px;
-    border-radius: 50px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    animation: float 3s ease-in-out infinite;
+    top: -50%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(186, 176, 229, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* Categories Section */
-.categories-section {
-    padding: 100px 0;
-    background: white;
+.home-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(224, 242, 241, 0.4) 0%, transparent 70%);
+    border-radius: 50%;
 }
 
 .container-custom {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.15;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+}
+
+.hero-title .highlight {
+    background: linear-gradient(135deg, var(--vintage-grape) 0%, var(--bright-lavender) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+}
+
+.btn-hero-primary {
+    background: linear-gradient(135deg, var(--vintage-grape) 0%, var(--bright-lavender) 100%);
+    color: white;
+    border: none;
+    padding: 16px 36px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(73, 65, 109, 0.25);
+}
+
+.btn-hero-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(73, 65, 109, 0.35);
+    color: white;
+}
+
+.btn-hero-outline {
+    background: white;
+    color: var(--text-dark);
+    border: 2px solid #e8e8e8;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-hero-outline:hover {
+    border-color: var(--vintage-grape);
+    background: rgba(186, 176, 229, 0.05);
+    color: var(--vintage-grape);
+    transform: translateY(-2px);
+}
+
+/* Stats Cards */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: var(--vintage-grape);
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Sections */
+.section {
+    padding: 80px 0;
 }
 
 .section-header {
     text-align: center;
-    margin-bottom: 60px;
+    max-width: 700px;
+    margin: 0 auto 50px;
 }
 
 .section-title {
@@ -158,353 +195,431 @@
     font-size: 48px;
     font-weight: 900;
     color: var(--text-dark);
-    margin-bottom: 16px;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
 }
 
 .section-subtitle {
-    font-size: 18px;
     color: var(--text-muted);
+    font-size: 18px;
+    line-height: 1.6;
 }
 
-.categories-grid {
+.section-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--vintage-grape);
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 16px;
+    transition: all 0.2s ease;
+}
+
+.section-link:hover {
+    gap: 12px;
+}
+
+.grid-4 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
 }
 
-.category-card {
-    position: relative;
-    height: 380px;
+/* Recipe cards */
+.recipe-card {
+    background: white;
     border-radius: 20px;
     overflow: hidden;
     text-decoration: none;
     display: block;
-    transition: transform 0.4s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    position: relative;
 }
 
-.category-card:hover {
-    transform: translateY(-8px);
-}
-
-.category-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-}
-
-.category-card:hover img {
-    transform: scale(1.05);
-}
-
-.category-overlay {
+.recipe-card::before {
+    content: '';
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
-    padding: 32px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(186, 176, 229, 0.1) 0%, rgba(224, 242, 241, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
 }
 
-.category-name {
-    color: white;
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-
-.category-desc {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 14px;
-}
-
-/* Latest Recipes */
-.recipes-section {
-    padding: 100px 0;
-    background: #fafafa;
-}
-
-.recipes-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 30px;
-}
-
-.recipe-card {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    text-decoration: none;
-    display: block;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.recipe-card:hover::before {
+    opacity: 1;
 }
 
 .recipe-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
 }
 
-.recipe-image {
+.recipe-img {
     width: 100%;
     height: 220px;
     object-fit: cover;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+    position: relative;
+    z-index: 1;
 }
 
-.recipe-content {
+.recipe-body {
     padding: 20px;
+    position: relative;
+    z-index: 1;
 }
 
-.recipe-title {
-    font-size: 18px;
-    font-weight: 600;
+.recipe-name {
+    font-size: 17px;
+    font-weight: 800;
     color: var(--text-dark);
-    margin-bottom: 8px;
+    margin: 0 0 12px;
     line-height: 1.3;
 }
 
 .recipe-meta {
     display: flex;
-    align-items: center;
     gap: 16px;
+    flex-wrap: wrap;
     font-size: 13px;
     color: var(--text-muted);
+    font-weight: 500;
 }
 
-/* CTA Section */
-.cta-section {
-    padding: 100px 0;
-    background: linear-gradient(135deg, var(--vintage-grape) 0%, var(--bright-lavender) 100%);
+.recipe-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.recipe-meta i {
+    color: var(--vintage-grape);
+    font-size: 14px;
+}
+
+/* Empty states */
+.empty {
+    background: white;
+    border: 2px dashed #e8e8e8;
+    border-radius: 24px;
+    padding: 60px 40px;
     text-align: center;
-    color: white;
-}
-
-.cta-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 40px;
-}
-
-.cta-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 48px;
-    font-weight: 900;
-    margin-bottom: 20px;
-}
-
-.cta-description {
-    font-size: 18px;
-    margin-bottom: 40px;
-    opacity: 0.95;
-}
-
-.search-form {
-    position: relative;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.search-input {
-    width: 100%;
-    padding: 18px 60px 18px 24px;
-    border: none;
-    border-radius: 50px;
+    color: var(--text-muted);
     font-size: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
-.search-btn {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--text-dark);
-    color: white;
-    border: none;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    cursor: pointer;
+.empty i {
+    font-size: 48px;
+    color: #ddd;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.empty-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+/* Feature Cards (replacing quick links) */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 50px;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
 }
 
-.search-btn:hover {
-    background: var(--vintage-grape);
-    transform: translateY(-50%) scale(1.05);
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+}
+
+.feature-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--vintage-grape);
+}
+
+.feature-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.feature-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Alternating section backgrounds */
+.section-alt {
+    background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
 }
 
 /* Responsive */
 @media (max-width: 1200px) {
-    .hero-container {
-        grid-template-columns: 1fr;
-        gap: 60px;
-    }
-
-    .hero-image-container {
-        order: -1;
-    }
-
-    .recipes-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-    .hero-title {
-        font-size: 48px;
-    }
-
-    .categories-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .recipes-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .hero-main-image {
-        height: 400px;
-    }
+    .container-custom { padding: 0 20px; }
+    .hero-title { font-size: 42px; }
+    .section-title { font-size: 36px; }
+    .grid-4 { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero-section">
-    <div class="hero-container">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <i class="bi bi-fire"></i>
-                <span>85% would make this again</span>
-            </div>
+<!-- HERO -->
+<section class="home-hero">
+  <div class="container-custom">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Plan meals with <span class="highlight">intelligence</span>
+      </h1>
+      <p class="hero-subtitle">
+        Transform your kitchen into a culinary command center. Smart meal planning,
+        pantry tracking, and personalized recipes—all in one beautiful place.
+      </p>
 
-            <h1 class="hero-title">
-                Mighty Super <span class="highlight">Cheesecake</span>
-            </h1>
+      <div class="hero-actions">
+        <a href="{% url 'recipe_list' %}" class="btn-hero-primary">
+          <i class="bi bi-book"></i> Explore Recipes
+        </a>
+        <a href="{% url 'cookable_recipes' %}" class="btn-hero-outline">
+          <i class="bi bi-lightbulb"></i> What Can I Cook?
+        </a>
+      </div>
 
-            <p class="hero-description">
-                Look no further for a creamy and ultra smooth classic cheesecake recipe! No one can deny its simple decadence.
-            </p>
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <a href="{% url 'recipe_list' %}" class="stat-card" style="text-decoration: none; color: inherit;">
+          <div class="stat-icon">
+            <i class="bi bi-book"></i>
+          </div>
+          <div class="stat-value">{{ total_recipes|default:"0" }}</div>
+          <div class="stat-label">Recipes</div>
+        </a>
 
-            <div class="hero-actions">
-                <a href="{% url 'recipe_list' %}" class="btn-primary-custom">Explore Recipes</a>
-                <a href="{% url 'cookable_recipes' %}" class="btn-outline-custom">What Can I Cook?</a>
-            </div>
-        </div>
+        <a href="{% url 'pantry' %}" class="stat-card" style="text-decoration: none; color: inherit;">
+          <div class="stat-icon">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div class="stat-value">{{ pantry_count|default:"0" }}</div>
+          <div class="stat-label">Pantry Items</div>
+        </a>
 
-        <div class="hero-image-container">
-            <img src="{% static 'img/index/quick_and_easy.jpg' %}" alt="Featured Recipe" class="hero-main-image">
-            <div class="hero-floating-badge">
-                <i class="bi bi-clock"></i>
-                <span>30 min</span>
-            </div>
-        </div>
+        <a href="{% url 'wishlist' %}" class="stat-card" style="text-decoration: none; color: inherit;">
+          <div class="stat-icon">
+            <i class="bi bi-heart"></i>
+          </div>
+          <div class="stat-value">{{ wishlist_count|default:"0" }}</div>
+          <div class="stat-label">Favorites</div>
+        </a>
+
+        <a href="{% url 'daily_plans' %}" class="stat-card" style="text-decoration: none; color: inherit;">
+          <div class="stat-icon">
+            <i class="bi bi-calendar-check"></i>
+          </div>
+          <div class="stat-value">{{ today_recipes_count|default:"0" }}</div>
+          <div class="stat-label">Today's Meals</div>
+        </a>
+      </div>
     </div>
+  </div>
 </section>
 
-<!-- Categories Section -->
-<section class="categories-section">
-    <div class="container-custom">
-        <div class="section-header">
-            <h2 class="section-title">Super Delicious</h2>
-        </div>
-
-        <div class="categories-grid">
-            <a href="{% url 'recipe_list' %}" class="category-card">
-                <img src="{% static 'img/index/quick_and_easy.jpg' %}" alt="Quick & Easy">
-                <div class="category-overlay">
-                    <div class="category-name">Quick & Easy</div>
-                    <div class="category-desc">Under 30 minutes</div>
-                </div>
-            </a>
-
-            <a href="{% url 'recipe_list' %}" class="category-card">
-                <img src="{% static 'img/index/casserole.jpg' %}" alt="Family Meals">
-                <div class="category-overlay">
-                    <div class="category-name">Family Dinners</div>
-                    <div class="category-desc">Serves 4-6 people</div>
-                </div>
-            </a>
-
-            <a href="{% url 'recipe_list' %}" class="category-card">
-                <img src="{% static 'img/index/most_popular.jpg' %}" alt="Healthy">
-                <div class="category-overlay">
-                    <div class="category-name">Light & Healthy</div>
-                    <div class="category-desc">Low calorie meals</div>
-                </div>
-            </a>
-        </div>
+<!-- TODAY PLAN -->
+<section class="section">
+  <div class="container-custom">
+    <div class="section-header">
+      <h2 class="section-title">Today's Menu</h2>
+      <p class="section-subtitle">Your personalized meal plan for today</p>
+      <a class="section-link" href="{% url 'daily_plans' %}">
+        View full plan <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
+
+    {% if today_recipes %}
+      <div class="grid-4">
+        {% for r in today_recipes %}
+          <a href="{% url 'recipe_detail' r.id %}" class="recipe-card">
+            {% if r.image %}
+              <img src="{{ r.image.url }}" class="recipe-img" alt="{{ r.name }}">
+            {% else %}
+              <div class="recipe-img"></div>
+            {% endif %}
+            <div class="recipe-body">
+              <div class="recipe-name">{{ r.name }}</div>
+              <div class="recipe-meta">
+                <span><i class="bi bi-clock"></i>{{ r.preparation_time }}m</span>
+                <span><i class="bi bi-people"></i>{{ r.no_of_servings }} servings</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <i class="bi bi-calendar-x"></i>
+        <div class="empty-title">No meals planned yet</div>
+        <div>Start by adding recipes to create your perfect day</div>
+        <a class="section-link" href="{% url 'recipe_list' %}" style="margin-top: 20px;">
+          Browse recipes <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    {% endif %}
+  </div>
 </section>
 
-<!-- Latest Recipes -->
-<section class="recipes-section">
-    <div class="container-custom">
-        <div class="section-header">
-            <h2 class="section-title">Latest Recipes</h2>
-        </div>
-
-        <div class="recipes-grid">
-            <a href="{% url 'recipe_list' %}" class="recipe-card">
-                <img src="{% static 'img/index/quick_and_easy.jpg' %}" alt="Recipe" class="recipe-image">
-                <div class="recipe-content">
-                    <h3 class="recipe-title">Caramel Strawberry Milkshake</h3>
-                    <div class="recipe-meta">
-                        <span><i class="bi bi-clock"></i> 30 MIN</span>
-                        <span><i class="bi bi-fire"></i> 220 Cal</span>
-                    </div>
-                </div>
-            </a>
-
-            <a href="{% url 'recipe_list' %}" class="recipe-card">
-                <img src="{% static 'img/index/casserole.jpg' %}" alt="Recipe" class="recipe-image">
-                <div class="recipe-content">
-                    <h3 class="recipe-title">Cashew Vegan Rice</h3>
-                    <div class="recipe-meta">
-                        <span><i class="bi bi-clock"></i> 45 MIN</span>
-                        <span><i class="bi bi-fire"></i> 320 Cal</span>
-                    </div>
-                </div>
-            </a>
-
-            <a href="{% url 'recipe_list' %}" class="recipe-card">
-                <img src="{% static 'img/index/most_popular.jpg' %}" alt="Recipe" class="recipe-image">
-                <div class="recipe-content">
-                    <h3 class="recipe-title">Smoked Salmon Salad</h3>
-                    <div class="recipe-meta">
-                        <span><i class="bi bi-clock"></i> 15 MIN</span>
-                        <span><i class="bi bi-fire"></i> 180 Cal</span>
-                    </div>
-                </div>
-            </a>
-
-            <a href="{% url 'recipe_list' %}" class="recipe-card">
-                <img src="{% static 'img/index/winter.jpg' %}" alt="Recipe" class="recipe-image">
-                <div class="recipe-content">
-                    <h3 class="recipe-title">Berry Madness Biscuits</h3>
-                    <div class="recipe-meta">
-                        <span><i class="bi bi-clock"></i> 25 MIN</span>
-                        <span><i class="bi bi-fire"></i> 250 Cal</span>
-                    </div>
-                </div>
-            </a>
-        </div>
+<!-- WISHLIST -->
+<section class="section section-alt">
+  <div class="container-custom">
+    <div class="section-header">
+      <h2 class="section-title">Saved for Later</h2>
+      <p class="section-subtitle">Your collection of favorite recipes to try</p>
+      <a class="section-link" href="{% url 'wishlist' %}">
+        See all favorites <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
+
+    {% if wishlist_recipes %}
+      <div class="grid-4">
+        {% for r in wishlist_recipes %}
+          <a href="{% url 'recipe_detail' r.id %}" class="recipe-card">
+            {% if r.image %}
+              <img src="{{ r.image.url }}" class="recipe-img" alt="{{ r.name }}">
+            {% else %}
+              <div class="recipe-img"></div>
+            {% endif %}
+            <div class="recipe-body">
+              <div class="recipe-name">{{ r.name }}</div>
+              <div class="recipe-meta">
+                <span><i class="bi bi-clock"></i>{{ r.preparation_time }}m</span>
+                <span><i class="bi bi-people"></i>{{ r.no_of_servings }} servings</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <i class="bi bi-heart"></i>
+        <div class="empty-title">Your wishlist is empty</div>
+        <div>Tap the heart icon on any recipe to save it here</div>
+        <a class="section-link" href="{% url 'recipe_list' %}" style="margin-top: 20px;">
+          Discover recipes <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    {% endif %}
+  </div>
 </section>
 
-<!-- CTA Section -->
-<section class="cta-section">
-    <div class="cta-container">
-        <h2 class="cta-title">Deliciousness to your inbox</h2>
-        <p class="cta-description">Enjoy weekly hand picked recipes and recommendations</p>
-
-        <form class="search-form" action="{% url 'recipe_list' %}" method="get">
-            <input type="text" name="q" class="search-input" placeholder="Search recipes, ingredients, cuisines...">
-            <button type="submit" class="search-btn">
-                <i class="bi bi-search"></i>
-            </button>
-        </form>
+<!-- LATEST RECIPES -->
+<section class="section">
+  <div class="container-custom">
+    <div class="section-header">
+      <h2 class="section-title">Fresh Additions</h2>
+      <p class="section-subtitle">Newly added recipes to inspire your cooking</p>
+      <a class="section-link" href="{% url 'recipe_list' %}">
+        Explore all recipes <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
+
+    {% if latest_recipes %}
+      <div class="grid-4">
+        {% for r in latest_recipes %}
+          <a href="{% url 'recipe_detail' r.id %}" class="recipe-card">
+            {% if r.image %}
+              <img src="{{ r.image.url }}" class="recipe-img" alt="{{ r.name }}">
+            {% else %}
+              <div class="recipe-img"></div>
+            {% endif %}
+            <div class="recipe-body">
+              <div class="recipe-name">{{ r.name }}</div>
+              <div class="recipe-meta">
+                <span><i class="bi bi-clock"></i>{{ r.preparation_time }}m</span>
+                <span><i class="bi bi-people"></i>{{ r.no_of_servings }} servings</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <i class="bi bi-book"></i>
+        <div class="empty-title">No recipes yet</div>
+        <div>Start building your recipe collection today</div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- FEATURES (Optional - replaces the old quick nav) -->
+<section class="section section-alt">
+  <div class="container-custom">
+    <div class="section-header">
+      <h2 class="section-title">Powerful Features</h2>
+      <p class="section-subtitle">Everything you need for smarter meal planning</p>
+    </div>
+
+    <div class="features-grid">
+      <a href="{% url 'pantry_scan' %}" class="feature-card">
+        <div class="feature-icon">
+          <i class="bi bi-camera"></i>
+        </div>
+        <div class="feature-title">Smart Pantry Scan</div>
+        <div class="feature-desc">Take a photo and automatically detect ingredients in your kitchen</div>
+      </a>
+
+      <a href="{% url 'cookable_recipes' %}" class="feature-card">
+        <div class="feature-icon">
+          <i class="bi bi-lightbulb"></i>
+        </div>
+        <div class="feature-title">What Can I Cook?</div>
+        <div class="feature-desc">Discover recipes based on what's already in your pantry</div>
+      </a>
+
+      <a href="{% url 'daily_plans' %}" class="feature-card">
+        <div class="feature-icon">
+          <i class="bi bi-calendar-check"></i>
+        </div>
+        <div class="feature-title">Daily Planning</div>
+        <div class="feature-desc">Track nutrition goals and organize your meals effortlessly</div>
+      </a>
+    </div>
+  </div>
 </section>
 {% endblock %}

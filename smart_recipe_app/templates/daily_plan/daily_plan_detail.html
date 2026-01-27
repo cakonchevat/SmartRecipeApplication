@@ -4,110 +4,305 @@
 
 {% block extra_css %}
 <style>
+  .plan-detail-container{
+    max-width:1200px;
+    margin:60px auto 80px;
+    padding:0 40px;
+  }
+
+  .page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:28px;
+  }
+
+  .page-title{
+    font-family:'Playfair Display', serif;
+    font-size:42px;
+    font-weight:900;
+    color:var(--text-dark);
+    margin:0 0 6px 0;
+  }
+
+  .page-subtitle{
+    font-size:16px;
+    color:var(--text-muted);
+    margin:0;
+  }
+
+  .btn-pill{
+    border:none;
+    padding:12px 18px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition:all .25s ease;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+  }
+
+  .btn-back{
+    background:white;
+    color:var(--text-dark);
+    border:2px solid #e8e8e8;
+  }
+  .btn-back:hover{
+    border-color:var(--vintage-grape);
+    color:var(--vintage-grape);
+    transform:translateY(-2px);
+  }
+
   .detail-card{
     background:#fff;
-    padding:30px;
-    border-radius:16px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.10);
-    border-left:6px solid #6f42c1;
+    border:1px solid #f0f0f0;
+    border-radius:24px;
+    padding:34px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.08);
   }
+
+  /* KPI / Stats */
   .kpi-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
-    gap:14px;
-    margin:18px 0 26px;
+    grid-template-columns:repeat(3, 1fr);
+    gap:18px;
+    margin:18px 0 30px;
   }
+
   .kpi-box{
-    background:#f8f9fa;
-    border:1px solid #e9ecef;
-    border-radius:12px;
-    padding:16px;
+    background:white;
+    border:1px solid #f0f0f0;
+    border-radius:18px;
+    padding:20px 18px 16px;
     text-align:center;
+    box-shadow:0 2px 10px rgba(0,0,0,0.03);
+    position:relative;
   }
+
+  /* Use palette-like accents (no background) */
+  .kpi-box.wanted{ border-left:6px solid #C5254D; }
+  .kpi-box.total{ border-left:6px solid #E36B7E; }
+  .kpi-box.remaining{ border-left:6px solid #FFCBAA; }
+
   .kpi-label{
     font-size:12px;
-    letter-spacing:0.5px;
+    letter-spacing:.6px;
     text-transform:uppercase;
-    color:#666;
-    margin-bottom:6px;
-    font-weight:600;
-  }
-  .kpi-value{
-    font-size:22px;
+    color:var(--text-muted);
+    margin-bottom:10px;
     font-weight:800;
-    color:#212529;
   }
+
+  .kpi-value{
+    font-size:30px;
+    font-weight:900;
+    color:var(--text-dark);
+    line-height:1.05;
+    margin-bottom:6px;
+  }
+
+  .kpi-sub{
+    font-size:12px;
+    color:var(--text-muted);
+  }
+
+  /* Section title */
+  .section-title{
+    font-size:20px;
+    font-weight:900;
+    color:var(--text-dark);
+    margin:0 0 16px 0;
+  }
+
+  /* Table */
+  .table-wrap{
+    border:1px solid #f0f0f0;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,0.04);
+    background:white;
+  }
+
   .items-table{
     width:100%;
     border-collapse:separate;
     border-spacing:0;
-    border-radius:12px;
-    overflow:hidden;
-    box-shadow:0 2px 10px rgba(0,0,0,0.06);
   }
+
   .items-table thead th{
-    background:#f1f3f5;
+    background:#fafafa;
     padding:14px 16px;
-    font-weight:600;
-    font-size:14px;
-    border-bottom:1px solid #e5e7eb;
+    font-weight:800;
+    font-size:13px;
+    border-bottom:1px solid #f0f0f0;
+    color:var(--text-dark);
   }
+
   .items-table tbody td{
     padding:14px 16px;
     font-size:14px;
-    border-bottom:1px solid #f0f0f0;
+    border-bottom:1px solid #f6f6f6;
     vertical-align:middle;
+    color:var(--text-dark);
   }
-  .items-table tbody tr:hover td{ background:#fbfbfb; }
-  .actions{
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-    margin-top:18px;
+
+  .items-table tbody tr:hover td{
+    background:linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
+  }
+
+  .muted{
+    color:var(--text-muted);
+  }
+
+  .badge-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 12px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:13px;
+    background:var(--vintage-grape);
+    color:white;
+    white-space:nowrap;
+  }
+
+  .badge-soft{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 12px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:13px;
+    background:white;
+    border:2px solid #e8e8e8;
+    color:var(--text-dark);
+    white-space:nowrap;
+  }
+
+  .btn-view{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:10px 14px;
+    border-radius:999px;
+    background:#3B9797;
+    color:white;
+    text-decoration:none;
+    font-weight:800;
+    font-size:13px;
+    transition:all .25s ease;
+    border:none;
+  }
+  .btn-view:hover{
+    background:#0F828C;
+    color:white;
+    transform:translateY(-1px);
+    box-shadow:0 8px 18px rgba(15,130,140,0.20);
+  }
+
+  /* Empty state */
+  .empty-state{
+    text-align:center;
+    padding:44px 18px;
+  }
+  .empty-state i{
+    font-size:56px;
+    color:#ddd;
+    margin-bottom:16px;
+    display:inline-block;
+  }
+  .empty-state h3{
+    font-family:'Playfair Display', serif;
+    font-size:24px;
+    font-weight:900;
+    margin-bottom:10px;
+    color:var(--text-dark);
+  }
+  .empty-state p{
+    color:var(--text-muted);
+    margin:0 0 14px 0;
+  }
+
+  .btn-browse{
+    background:var(--vintage-grape);
+    color:white;
+  }
+  .btn-browse:hover{
+    background:var(--bright-lavender);
+    color:white;
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(73,65,109,0.25);
+  }
+
+  @media (max-width: 900px){
+    .kpi-grid{ grid-template-columns:1fr; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
+<div class="plan-detail-container">
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="m-0">Plan for {{ plan.date|date:"d M Y" }}</h2>
-    <a href="{% url 'daily_plans' %}" class="btn btn-outline-secondary">Back</a>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Daily Plan</h1>
+      <p class="page-subtitle">Plan for {{ plan.date|date:"l, F d, Y" }}</p>
+    </div>
+
+    <a href="{% url 'daily_plans' %}" class="btn-pill btn-back">
+      <i class="bi bi-arrow-left"></i>
+      Back to Plans
+    </a>
   </div>
 
   <div class="detail-card">
 
     <div class="kpi-grid">
-      <div class="kpi-box">
+      <div class="kpi-box wanted">
         <div class="kpi-label">Wanted</div>
-        <div class="kpi-value">{{ plan.wanted_calories }} kcal</div>
+        <div class="kpi-value">{{ plan.wanted_calories }}</div>
+        <div class="kpi-sub">kcal target</div>
       </div>
-      <div class="kpi-box">
+
+      <div class="kpi-box total">
         <div class="kpi-label">Total</div>
-        <div class="kpi-value">{{ plan.total_calories }} kcal</div>
+        <div class="kpi-value">{{ plan.total_calories|floatformat:0 }}</div>
+        <div class="kpi-sub">kcal consumed</div>
       </div>
-      <div class="kpi-box">
+
+      <div class="kpi-box remaining">
         <div class="kpi-label">Remaining</div>
         <div class="kpi-value">
           {% if plan.remaining_calories < 0 %}
-            <span class="text-danger">{{ plan.remaining_calories }} kcal</span>
+            <span class="text-danger">{{ plan.remaining_calories|floatformat:0 }}</span>
           {% else %}
-            <span class="text-success">{{ plan.remaining_calories }} kcal</span>
+            <span class="text-success">{{ plan.remaining_calories|floatformat:0 }}</span>
           {% endif %}
+        </div>
+        <div class="kpi-sub">
+          kcal {% if plan.remaining_calories < 0 %}over{% else %}left{% endif %}
         </div>
       </div>
     </div>
 
-    <h4 class="mb-3">Recipes in this plan</h4>
+    <h3 class="section-title">Recipes in this plan ({{ plan.recipes.count }})</h3>
 
     {% if plan.recipes.all %}
-      <div class="table-responsive">
+      <div class="table-responsive table-wrap">
         <table class="items-table">
           <thead>
             <tr>
               <th>Recipe</th>
-              <th>Total calories</th>
+              <th>Total</th>
               <th>Per serving</th>
               <th class="text-end">Open</th>
             </tr>
@@ -115,17 +310,29 @@
           <tbody>
             {% for recipe in plan.recipes.all %}
               <tr>
-                <td><strong>{{ recipe.name }}</strong></td>
-                <td>{{ recipe.total_calories|floatformat:0 }} kcal</td>
+                <td>
+                  <strong>{{ recipe.name }}</strong>
+                </td>
+                <td>
+                  <span class="badge-pill">
+                    <i class="bi bi-fire"></i>
+                    {{ recipe.total_calories|floatformat:0 }} kcal
+                  </span>
+                </td>
                 <td>
                   {% if recipe.calories_per_serving %}
-                    {{ recipe.calories_per_serving|floatformat:0 }} kcal
+                    <span class="badge-soft">
+                      <i class="bi bi-egg-fried"></i>
+                      {{ recipe.calories_per_serving|floatformat:0 }} kcal
+                    </span>
                   {% else %}
-                    <span class="text-muted">—</span>
+                    <span class="muted">—</span>
                   {% endif %}
                 </td>
                 <td class="text-end">
-                  <a class="btn btn-sm btn-outline-success" href="{% url 'recipe_detail' recipe.id %}">View</a>
+                  <a class="btn-view" href="{% url 'recipe_detail' recipe.id %}">
+                    <i class="bi bi-eye"></i>View
+                  </a>
                 </td>
               </tr>
             {% endfor %}
@@ -133,10 +340,14 @@
         </table>
       </div>
     {% else %}
-      <div class="text-center py-4">
-        <p class="text-muted mb-1">No recipes selected for this plan.</p>
-        <p class="small text-muted">Go to a recipe and add it to today’s plan.</p>
-        <a href="{% url 'recipe_list' %}" class="btn btn-green mt-2">Browse Recipes</a>
+      <div class="empty-state">
+        <i class="bi bi-calendar-x"></i>
+        <h3>No recipes yet</h3>
+        <p>No recipes selected for this plan. Add recipes from the recipe list.</p>
+        <a href="{% url 'recipe_list' %}" class="btn-pill btn-browse">
+          <i class="bi"></i>
+          Browse Recipes
+        </a>
       </div>
     {% endif %}
 

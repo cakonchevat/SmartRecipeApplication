@@ -55,8 +55,12 @@ urlpatterns = [
     path('plans/', views.daily_plans_list, name='daily_plans'),
     path('plans/new/', views.daily_plan_create, name='daily_plan_create'),
     path('plans/<int:plan_id>/', views.daily_plan_detail, name='daily_plan_detail'),
+    path('daily-plans/<int:plan_id>/update/', views.daily_plan_update, name='daily_plan_update'),
 
-    # Urls for service-implemented views
+    path("plans/<int:plan_id>/remove-recipe/<int:recipe_id>/", views.daily_plan_remove_recipe, name="daily_plan_remove_recipe"),
+    path("plans/<int:plan_id>/delete/", views.daily_plan_delete, name="daily_plan_delete"),
+
+                  # Urls for service-implemented views
     path('plans/suggest/', views.suggest_daily_plan, name='suggest_daily_plan'),
     path('recipes/cookable/', views.cookable_recipes, name='cookable_recipes'),
 

@@ -231,7 +231,6 @@
         color: var(--text-muted);
     }
 
-    /* Bottom Actions */
     .bottom-actions {
         display: flex;
         justify-content: space-between;
@@ -255,6 +254,29 @@
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
         }
+    }
+
+
+    .btn-active-wishlist {
+        background: var(--sweet-salmon);
+        color: white;
+        border: 2px solid var(--sweet-salmon);
+    }
+
+    .btn-active-wishlist:hover {
+        background: #e65c63;
+        color: white;
+    }
+
+    .btn-active-today {
+        background: #3B9797;
+        color: white;
+        border: 2px solid #3B9797;
+    }
+
+    .btn-active-today:hover {
+        background: #0F828C;
+        color: white;
     }
 
     @media (max-width: 576px) {
@@ -290,16 +312,26 @@
             </a>
             <form method="post" action="{% url 'add_recipe_to_today_plan' recipe.id %}" style="margin:0;">
                 {% csrf_token %}
-                <button type="submit" class="btn-action btn-secondary-action">
-                    <i class="bi bi-calendar-plus"></i>
-                    Add to Today
+                <button type="submit"
+                        class="btn-action btn-secondary-action
+                               {% if is_in_today_plan %}btn-active-today{% endif %}">
+                    {% if is_in_today_plan %}
+                        <i class="bi bi-calendar-check"></i> In Today’s Plan
+                    {% else %}
+                        <i class="bi bi-calendar-plus"></i> Add to Today
+                    {% endif %}
                 </button>
             </form>
             <form method="post" action="{% url 'wishlist_toggle' recipe.id %}" style="margin:0;">
                 {% csrf_token %}
-                <button type="submit" class="btn-action btn-secondary-action">
-                    <i class="bi bi-heart{% if is_in_wishlist %}-fill{% endif %}"></i>
-                    {% if is_in_wishlist %}In Wishlist{% else %}Add to Wishlist{% endif %}
+                <button type="submit"
+                        class="btn-action btn-secondary-action
+                               {% if is_in_wishlist %}btn-active-wishlist{% endif %}">
+                    {% if is_in_wishlist %}
+                        <i class="bi bi-heart-fill"></i> In Wishlist
+                    {% else %}
+                        <i class="bi bi-heart"></i> Add to Wishlist
+                    {% endif %}
                 </button>
             </form>
         </div>
@@ -397,13 +429,11 @@
             Back to Recipes
         </a>
 
-        <form method="post" action="{% url 'recipe_delete' recipe.id %}" style="margin: 0;">
-            {% csrf_token %}
-            <button type="submit" class="btn-action btn-delete" onclick="return confirm('Delete this recipe?');">
-                <i class="bi bi-trash"></i>
-                Delete Recipe
-            </button>
-        </form>
+        <a href="{% url 'recipe_delete' recipe.id %}?next={% url 'recipe_detail' recipe.id %}"
+           class="btn-action btn-delete">
+            <i class="bi bi-trash"></i>
+            Delete Recipe
+        </a>
     </div>
 </div>
 {% endblock %}

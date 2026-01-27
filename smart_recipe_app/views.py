@@ -1,4 +1,6 @@
 from django.http import JsonResponse
+from django.utils import timezone
+
 from smart_recipe_app.services import process_pantry_scan
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -22,11 +24,36 @@ def register(request):
 
     return render(request, 'registration/register.html', {'form': form})
 
-
 @login_required
 def index(request):
-    return render(request, 'common/index.html')
+    latest_recipes = Recipe.objects.order_by("-id")[:8]
 
+    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+    wishlist_recipes = wishlist.recipes.order_by("-id")[:4]
+    wishlist_count = wishlist.recipes.count()
+
+    today_plan, _ = DailyPlan.objects.get_or_create(
+        user=request.user,
+        date=date.today(),
+        defaults={"wanted_calories": 2000}
+    )
+    today_recipes = today_plan.recipes.order_by("name")[:4]
+    today_recipes_count = today_plan.recipes.count()
+
+    total_recipes = Recipe.objects.count()
+
+    pantry, _ = Pantry.objects.get_or_create(user=request.user)
+    pantry_count = PantryItemRelation.objects.filter(pantry=pantry).count()
+
+    return render(request, "common/index.html", {
+        "latest_recipes": latest_recipes,
+        "wishlist_recipes": wishlist_recipes,
+        "today_recipes": today_recipes,
+        "total_recipes": total_recipes,
+        "pantry_count": pantry_count,
+        "wishlist_count": wishlist_count,
+        "today_recipes_count": today_recipes_count,
+    })
 
 # ===== ALLERGEN VIEWS =====
 @login_required
@@ -253,13 +280,14 @@ def recipe_detail(request, pk):
     for rel in relations:
         ing = rel.ingredient
 
-        base_amount = float(ing.base_amount or 1)  # avoid division by 0
+        base_amount = float(ing.base_amount or 1)
         calories_base = float(ing.calories_per_base_amount or 0)
 
         calories_per_unit = calories_base / base_amount
-        rel.calories = float(rel.quantity or 0) * calories_per_unit
 
-        total_calories += rel.calories
+        rel.calories_calc = float(rel.quantity or 0) * calories_per_unit
+
+        total_calories += rel.calories_calc
 
     calories_per_serving = None
     if recipe.no_of_servings:
@@ -270,14 +298,21 @@ def recipe_detail(request, pk):
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
     is_in_wishlist = wishlist.recipes.filter(pk=recipe.pk).exists()
 
+    today_plan, _ = DailyPlan.objects.get_or_create(
+        user=request.user,
+        date=date.today(),
+        defaults={"wanted_calories": 2000}
+    )
+    is_in_today_plan = today_plan.recipes.filter(pk=recipe.pk).exists()
+
     return render(request, "recipes/recipe_detail.html", {
         "recipe": recipe,
         "relations": relations,
         "total_calories": total_calories,
         "calories_per_serving": calories_per_serving,
         "is_in_wishlist": is_in_wishlist,
+        "is_in_today_plan": is_in_today_plan,
     })
-
 
 @login_required
 def recipe_create(request):
@@ -387,16 +422,19 @@ def recipe_remove_ingredient(request, pk, relation_id):
 def recipe_delete(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
 
+    next_url = request.GET.get("next") or request.POST.get("next") or reverse("recipe_list")
+
     if request.method == "POST":
         recipe.delete()
         messages.success(request, "Recipe deleted.")
-        return redirect("recipe_list")
+        return redirect(next_url)
 
     return render(request, "common/confirm_delete.html", {
         "object_type": "Recipe",
         "object_name": recipe.name,
         "warning": "Deleting this recipe will also remove its ingredient relations.",
-        "cancel_url": reverse("recipe_detail", args=[pk]),
+        "cancel_url": next_url,
+        "next": next_url,
     })
 
 
@@ -408,12 +446,13 @@ def toggle_wishlist(request, pk):
 
     if wishlist.recipes.filter(pk=recipe.pk).exists():
         wishlist.recipes.remove(recipe)
-        action = "removed"
+        messages.success(request, "Removed from wishlist.")
     else:
         wishlist.recipes.add(recipe)
-        action = "added"
+        messages.success(request, "Added to wishlist.")
 
-    return JsonResponse({"status": "success", "action": action})
+    return redirect("recipe_detail", pk=pk)
+
 
 
 @login_required
@@ -429,12 +468,12 @@ def add_recipe_to_today_plan(request, pk):
 
     if plan.recipes.filter(pk=recipe.pk).exists():
         plan.recipes.remove(recipe)
-        action = "removed"
+        messages.success(request, "Removed from today’s plan.")
     else:
         plan.recipes.add(recipe)
-        action = "added"
+        messages.success(request, "Added to today’s plan.")
 
-    return JsonResponse({"status": "success", "action": action})
+    return redirect("recipe_detail", pk=pk)
 
 # ===== PANTRY VIEWS =====
 def _get_user_pantry(user):
@@ -584,6 +623,66 @@ def daily_plan_create(request):
 
     return render(request, 'daily_plan/daily_plan_form.html', {'form': form})
 
+@login_required
+@require_POST
+def daily_plan_update(request, plan_id):
+    plan = get_object_or_404(DailyPlan, id=plan_id, user=request.user)
+
+    try:
+        new_calories = int(request.POST.get('wanted_calories', 2000))
+        if 500 <= new_calories <= 10000:
+            plan.wanted_calories = new_calories
+            plan.save()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'error': 'Calories must be between 500 and 10000'}, status=400)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid value'}, status=400)
+
+@login_required
+def daily_plan_remove_recipe(request, plan_id, recipe_id):
+    plan = get_object_or_404(DailyPlan, id=plan_id, user=request.user)
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+
+    if request.method == "POST":
+        plan.recipes.remove(recipe)
+        messages.success(request, f'"{recipe.name}" removed from the plan.')
+        return redirect("daily_plans")  # stays on daily plans page
+
+    # GET -> show confirm delete form
+    return render(request, "common/confirm_delete.html", {
+        "object_type": "Meal",
+        "object_name": recipe.name,
+        "warning": f"This will remove the recipe from {plan.date.strftime('%d %b %Y')}. The recipe itself will NOT be deleted.",
+        "cancel_url": reverse("daily_plans"),
+        "action_url": reverse("daily_plan_remove_recipe", args=[plan.id, recipe.id]),
+        "confirm_text": "Remove",
+    })
+
+
+@login_required
+def daily_plan_delete(request, plan_id):
+    plan = get_object_or_404(DailyPlan, id=plan_id, user=request.user)
+
+    # block deleting today's plan
+    if plan.date == timezone.now().date():
+        messages.error(request, "You cannot delete today's plan.")
+        return redirect("daily_plans")
+
+    if request.method == "POST":
+        plan.delete()
+        messages.success(request, "Daily plan deleted.")
+        return redirect("daily_plans")
+
+    # GET -> show confirm delete form
+    return render(request, "common/confirm_delete.html", {
+        "object_type": "Daily Plan",
+        "object_name": plan.date.strftime("%d %b %Y"),
+        "warning": "Deleting this plan will remove all recipes saved in it (for that day).",
+        "cancel_url": reverse("daily_plans"),
+        "action_url": reverse("daily_plan_delete", args=[plan.id]),
+        "confirm_text": "Delete",
+    })
 
 # Views from services
 # Add to views.py
