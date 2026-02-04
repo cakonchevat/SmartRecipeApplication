@@ -1,28 +1,43 @@
-from django.http import JsonResponse
-from django.utils import timezone
+from functools import wraps
 
-from smart_recipe_app.services import process_pantry_scan
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
-from django.shortcuts import render, redirect, get_object_or_404
-from smart_recipe_app.forms import *
-from smart_recipe_app.models import *
 from django.db.models import Q, Prefetch
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from smart_recipe_app.forms import *
+from smart_recipe_app.models import *
+from smart_recipe_app.services import process_pantry_scan
+
+#Custom decorator for restricting role access
+def group_required(group_name):
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped(request, *args, **kwargs):
+            if request.user.groups.filter(name=group_name).exists():
+                return view_func(request, *args, **kwargs)
+            return render(request, "page_not_found.html", status=403)
+        return _wrapped
+    return decorator
 
 def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login')
+            return redirect("login")
     else:
-        form = UserCreationForm()
+        form = RegisterForm()
 
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, "registration/register.html", {"form": form})
+
+@login_required
+def user_profile(request):
+    return render(request, "registration/user_profile.html", {"user_obj": request.user})
 
 @login_required
 def index(request):
@@ -57,12 +72,14 @@ def index(request):
 
 # ===== ALLERGEN VIEWS =====
 @login_required
+@group_required("Admin")
 def allergen_list(request):
     allergens = Allergen.objects.all().order_by("name")
     return render(request, "allergens/allergens.html", {"allergens": allergens})
 
 
 @login_required
+@group_required("Admin")
 def allergen_create(request):
     if request.method == "POST":
         form = AllergenForm(request.POST)
@@ -76,6 +93,7 @@ def allergen_create(request):
 
 
 @login_required
+@group_required("Admin")
 def allergen_edit(request, pk):
     allergen = get_object_or_404(Allergen, pk=pk)
     if request.method == "POST":
@@ -90,6 +108,7 @@ def allergen_edit(request, pk):
 
 
 @login_required
+@group_required("Admin")
 def allergen_delete(request, pk):
     allergen = get_object_or_404(Allergen, pk=pk)
 
@@ -108,12 +127,14 @@ def allergen_delete(request, pk):
 
 # ===== DIET VIEWS =====
 @login_required
+@group_required("Admin")
 def diet_list(request):
     diets = Diet.objects.all().order_by("name")
     return render(request, "diets/diets.html", {"diets": diets})
 
 
 @login_required
+@group_required("Admin")
 def diet_create(request):
     if request.method == "POST":
         form = DietForm(request.POST)
@@ -126,6 +147,7 @@ def diet_create(request):
 
 
 @login_required
+@group_required("Admin")
 def diet_edit(request, pk):
     diet = get_object_or_404(Diet, pk=pk)
     if request.method == "POST":
@@ -139,6 +161,7 @@ def diet_edit(request, pk):
 
 
 @login_required
+@group_required("Admin")
 def diet_delete(request, pk):
     diet = get_object_or_404(Diet, pk=pk)
 
@@ -157,6 +180,7 @@ def diet_delete(request, pk):
 
 # ===== INGREDIENT VIEWS =====
 @login_required
+@group_required("Admin")
 def ingredient_list(request):
     q = (request.GET.get("q") or "").strip()
 
@@ -169,6 +193,7 @@ def ingredient_list(request):
 
 
 @login_required
+@group_required("Admin")
 def ingredient_create(request):
     next_url = request.GET.get("next") or request.POST.get("next")
 
@@ -187,6 +212,7 @@ def ingredient_create(request):
 
 
 @login_required
+@group_required("Admin")
 def ingredient_edit(request, pk):
     ingredient = get_object_or_404(Ingredient, pk=pk)
 
@@ -202,6 +228,7 @@ def ingredient_edit(request, pk):
 
 
 @login_required
+@group_required("Admin")
 def ingredient_delete(request, pk):
     ingredient = get_object_or_404(Ingredient, pk=pk)
 
@@ -315,6 +342,7 @@ def recipe_detail(request, pk):
     })
 
 @login_required
+@group_required("Admin")
 def recipe_create(request):
     if request.method == "POST":
         form = RecipeForm(request.POST, request.FILES)
@@ -328,6 +356,7 @@ def recipe_create(request):
 
 
 @login_required
+@group_required("Admin")
 def recipe_edit(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
 
@@ -356,6 +385,7 @@ def recipe_edit(request, pk):
     })
 
 @login_required
+@group_required("Admin")
 def recipe_edit_ingredients(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
 
@@ -398,6 +428,7 @@ def recipe_edit_ingredients(request, pk):
 
 
 @login_required
+@group_required("Admin")
 def recipe_remove_ingredient(request, pk, relation_id):
     recipe = get_object_or_404(Recipe, pk=pk)
     relation = get_object_or_404(
@@ -419,6 +450,7 @@ def recipe_remove_ingredient(request, pk, relation_id):
 
 
 @login_required
+@group_required("Admin")
 def recipe_delete(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
 
@@ -837,3 +869,5 @@ def pantry_scan_processing(request, scan_id):
         return redirect("pantry_scan")
 
     return redirect("pantry_scan_review", scan_id=scan.id)
+
+

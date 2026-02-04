@@ -1,7 +1,11 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
 from jsonschema import ValidationError
 
 from .models import *
 from django import forms
+
+User = get_user_model()
 
 class IngredientSelectWithUnit(forms.Select):
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
@@ -11,7 +15,6 @@ class IngredientSelectWithUnit(forms.Select):
             option["attrs"]["data-unit"] = value.instance.base_unit
 
         return option
-
 
 class AllergenForm(forms.ModelForm):
     class Meta:
@@ -101,7 +104,6 @@ class DailyPlanForm(forms.ModelForm):
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
 
-
 # ML model
 class PantryScanForm(forms.ModelForm):
     class Meta:
@@ -120,3 +122,28 @@ class PantryScanForm(forms.ModelForm):
                 raise ValidationError("File must be an image")
 
         return image
+
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=120, required=True)
+    last_name = forms.CharField(max_length=120, required=True)
+
+    class Meta:
+        model = User
+        fields = ("username", "first_name", "last_name", "email", "password1", "password2")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Email already in use.")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+
+        if commit:
+            user.save()
+        return user

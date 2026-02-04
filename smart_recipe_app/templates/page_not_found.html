@@ -1,0 +1,146 @@
+{% extends 'common/base.html' %}
+{% load static %}
+
+{% block title %}Page not found{% endblock %}
+
+{% block content %}
+<style>
+  .notfound-wrap{
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 40px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .notfound-card{
+    width: 100%;
+    max-width: 780px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 18px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    padding: 46px 34px;
+    text-align: center;
+  }
+
+  .notfound-icon{
+    width: 92px;
+    height: 92px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 100%);
+    border: 1px solid #e8e8e8;
+  }
+
+  .notfound-title{
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    font-weight: 900;
+    font-style: italic;
+    color: var(--text-dark);
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+  }
+
+  .notfound-text{
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0 auto 26px;
+  }
+
+  .notfound-actions{
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .notfound-btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    border: 1px solid #e8e8e8;
+    color: var(--text-dark);
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .notfound-btn:hover{
+    border-color: var(--vintage-grape);
+    color: var(--vintage-grape);
+    transform: translateY(-1px);
+  }
+
+  .notfound-btn.primary{
+    background: var(--text-dark);
+    color: #fff;
+    border-color: var(--text-dark);
+  }
+
+  .notfound-btn.primary:hover{
+    background: var(--vintage-grape);
+    border-color: var(--vintage-grape);
+    color: #fff;
+  }
+
+  @media (max-width: 768px){
+    .notfound-wrap{
+      padding: 60px 20px 10px;
+    }
+    .notfound-card{
+      padding: 38px 22px;
+    }
+    .notfound-title{
+      font-size: 30px;
+    }
+  }
+</style>
+
+<div class="notfound-wrap">
+  <div class="notfound-card">
+    <div class="notfound-icon" aria-hidden="true">
+      <svg width="54" height="54" viewBox="0 0 64 64" role="img" aria-label="Crying face">
+        <!-- face -->
+        <circle cx="32" cy="32" r="22" fill="#FFE08A" stroke="#E9C46A" stroke-width="2"/>
+        <!-- eyes -->
+        <circle cx="24" cy="28" r="2.2" fill="#2b2b2b"/>
+        <circle cx="40" cy="28" r="2.2" fill="#2b2b2b"/>
+        <!-- eyebrows -->
+        <path d="M19.5 23.5c2.8-2.2 6.2-2.2 9 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/>
+        <path d="M35.5 23.5c2.8-2.2 6.2-2.2 9 0" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/>
+        <!-- mouth (sad) -->
+        <path d="M24 42c2.6-3.2 13.4-3.2 16 0" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round"/>
+        <!-- tear -->
+        <path d="M44 31c2.6 3.4 2.6 6.8 0 10.2c-2.6-3.4-2.6-6.8 0-10.2Z" fill="#7DD3FC" stroke="#38BDF8" stroke-width="1.2"/>
+        <!-- blush -->
+        <ellipse cx="19" cy="35" rx="4.2" ry="2.4" fill="#FCA5A5" opacity="0.65"/>
+        <ellipse cx="45" cy="35" rx="4.2" ry="2.4" fill="#FCA5A5" opacity="0.65"/>
+      </svg>
+    </div>
+
+    <h1 class="notfound-title">404 — Page not found</h1>
+    <p class="notfound-text">
+      Sorry, the page you are looking for does not exist.
+    </p>
+
+    <div class="notfound-actions">
+      <a class="notfound-btn primary" href="{% url 'recipe_list' %}">Go to Recipes</a>
+      <a class="notfound-btn" href="javascript:history.back()">Go back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

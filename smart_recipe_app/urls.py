@@ -10,6 +10,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('register/', views.register, name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('profile/', views.user_profile, name='user_profile'),
 
     # Allergens
     path("allergens/", views.allergen_list, name="allergen_list"),

@@ -1,0 +1,198 @@
+{% extends 'common/base.html' %}
+
+{% block title %}My profile{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-hero{
+    {#background: linear-gradient(135deg, #fef9f5 0%, #fff5f8 50%, #f0f4ff 100%);#}
+    padding: 70px 0 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-hero::before{
+    content:'';
+    position:absolute;
+    top:-45%;
+    right:-12%;
+    width:520px;
+    height:520px;
+    background: radial-gradient(circle, rgba(186,176,229,0.16) 0%, transparent 70%);
+    border-radius:50%;
+  }
+  .profile-hero::after{
+    content:'';
+    position:absolute;
+    bottom:-35%;
+    left:-8%;
+    width:520px;
+    height:520px;
+    {#background: radial-gradient(circle, rgba(224,242,241,0.45) 0%, transparent 70%);#}
+    border-radius:50%;
+  }
+
+  .profile-title{
+    font-family:'Playfair Display', serif;
+    font-weight:900;
+    letter-spacing:-0.02em;
+    color:var(--text-dark);
+  }
+  .profile-subtitle{
+    color:var(--text-muted);
+    line-height:1.7;
+  }
+
+  .profile-avatar{
+    width:52px;
+    height:52px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    color:#fff;
+    background: linear-gradient(135deg, var(--vintage-grape) 0%, var(--bright-lavender) 100%);
+    box-shadow: 0 10px 22px rgba(73,65,109,0.22);
+    flex-shrink:0;
+  }
+
+  .profile-head{
+    background: linear-gradient(135deg, rgba(224,239,222,0.65) 0%, rgba(179,242,221,0.45) 100%);
+    border-bottom:1px solid #ededed;
+  }
+
+  .info-item{
+    border:1px solid #ededed !important;
+    transition: all .25s ease;
+  }
+  .info-item:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+    border-color: rgba(73,65,109,0.15) !important;
+  }
+  .info-label{
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+  }
+  .info-label i{
+    color:var(--vintage-grape);
+  }
+  .info-value{
+    font-size:16px;
+    font-weight:800;
+    color:var(--text-dark);
+    word-break: break-word;
+  }
+
+  @media (max-width: 768px){
+    .profile-title{ font-size: 40px !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="profile-hero">
+  <div class="container-custom position-relative" style="z-index: 1;">
+    <div class="mx-auto text-center" style="max-width: 900px;">
+      <h1 class="profile-title display-5 mb-2">My profile</h1>
+      <p class="profile-subtitle lead mb-4">
+        View your account details and personal information.
+      </p>
+
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden text-start">
+        <div class="profile-head p-4">
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="profile-avatar">
+                {{ user_obj.username|first|upper }}
+              </div>
+
+              <div class="min-w-0">
+                <div class="fw-bold" style="font-size: 18px; color: var(--text-dark);">
+                  {% if user_obj.first_name or user_obj.last_name %}
+                    {{ user_obj.first_name }} {{ user_obj.last_name }}
+                  {% else %}
+                    {{ user_obj.username }}
+                  {% endif %}
+                </div>
+                <div class="text-muted fw-semibold small text-truncate">
+                  @{{ user_obj.username }}
+                </div>
+              </div>
+            </div>
+
+            <span class="badge rounded-pill px-3 py-2"
+                  style="background: white; border: 1px solid rgba(73,65,109,0.18); color: var(--vintage-grape); font-weight: 800;">
+              <i class="bi bi-person-badge me-1"></i> Account
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="info-item rounded-4 p-3 bg-white">
+                <div class="info-label d-flex align-items-center gap-2 mb-2">
+                  <i class="bi bi-person"></i> Username
+                </div>
+                <div class="info-value">{{ user_obj.username }}</div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-item rounded-4 p-3 bg-white">
+                <div class="info-label d-flex align-items-center gap-2 mb-2">
+                  <i class="bi bi-envelope"></i> Email
+                </div>
+                <div class="info-value">{{ user_obj.email|default:"—" }}</div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-item rounded-4 p-3 bg-white">
+                <div class="info-label d-flex align-items-center gap-2 mb-2">
+                  <i class="bi bi-person-vcard"></i> First name
+                </div>
+                <div class="info-value">{{ user_obj.first_name|default:"—" }}</div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="info-item rounded-4 p-3 bg-white">
+                <div class="info-label d-flex align-items-center gap-2 mb-2">
+                  <i class="bi bi-person-vcard-fill"></i> Last name
+                </div>
+                <div class="info-value">{{ user_obj.last_name|default:"—" }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <a href="{% url 'wishlist' %}"
+               class="btn btn-outline-secondary rounded-pill px-4 fw-bold"
+               style="border-color:#e8e8e8;">
+              <i class="bi bi-heart me-2"></i> Wishlist
+            </a>
+
+            <a href="{% url 'pantry' %}"
+               class="btn btn-outline-secondary rounded-pill px-4 fw-bold"
+               style="border-color:#e8e8e8;">
+              <i class="bi bi-basket me-2"></i> Pantry
+            </a>
+
+            <a href="{% url 'daily_plans' %}"
+               class="btn btn-outline-secondary rounded-pill px-4 fw-bold"
+               style="border-color:#e8e8e8;">
+              <i class="bi bi-calendar-check me-2"></i> Daily Plans
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}
