@@ -1,9 +1,16 @@
+import re
+
+import requests
+from django.utils.baseconv import base64
+
 from .ml_scan import detect_ingredients_local_yolo
-from .models import Recipe, Pantry, PantryScan, PantryScanDetection, PantryItemRelation, Ingredient
-import base64
+from .models import Recipe, Pantry, PantryScan, PantryScanDetection, PantryItemRelation, Ingredient, RecipeIngredientRelation
 import json
 import os
 from django.utils import timezone
+from io import BytesIO
+from PIL import Image, ImageDraw, ImageFont
+from django.core.files.base import ContentFile
 
 def suggest_recipes(wanted_calories, diet=None, excluded_allergen_ids=None):
     """
@@ -284,3 +291,105 @@ def apply_detection_to_pantry(pantry, ingredient: Ingredient, quantity: float):
         obj.save(update_fields=["quantity", "source"])
 
     return obj
+
+
+def build_unsplash_query(recipe):
+    """
+    Build a search query that prioritizes recipe name.
+    Ingredients are only used as fallback hints.
+    """
+    name = recipe.name.strip()
+
+    # If recipe name already contains food keywords, use it directly
+    if len(name.split()) >= 2:
+        return f"{name} food"
+
+    # Fallback: add main ingredient if name is too generic
+    main_ing = _pick_main_ingredient_name(recipe)
+    if main_ing:
+        return f"{name} {main_ing} food"
+
+    return f"{name} food"
+
+def _pick_main_ingredient_name(recipe) -> str:
+    rel = (RecipeIngredientRelation.objects
+           .select_related("ingredient")
+           .filter(recipe_id=recipe.pk)
+           .order_by("id")
+           .first())
+    return rel.ingredient.name if rel else ""
+
+def _safe_name_for_file(text: str) -> str:
+    text = text.strip().lower().replace(" ", "_")
+    text = re.sub(r"[^a-z0-9_]+", "", text)
+    return text[:40] if text else "recipe"
+
+def generate_recipe_image_if_missing(recipe) -> bool:
+    print("\n=== UNSPLASH GENERATOR START ===")
+    print("Recipe:", recipe.pk, recipe.name)
+
+    if recipe.image:
+        print("STOP: recipe already has image")
+        return False
+
+    has_ingredients = RecipeIngredientRelation.objects.filter(recipe_id=recipe.pk).exists()
+    print("Has ingredients?", has_ingredients)
+    if not has_ingredients:
+        print("STOP: no ingredients yet")
+        return False
+
+    access_key = os.getenv("UNSPLASH_ACCESS_KEY")
+    print("Key exists?", bool(access_key))
+    if not access_key:
+        print("STOP: UNSPLASH_ACCESS_KEY not set in environment")
+        return False
+
+    query = build_unsplash_query(recipe)
+    query = re.sub(r"\s+", " ", query).strip()
+    print("Query:", query)
+
+    search_url = "https://api.unsplash.com/search/photos"
+    headers = {"Authorization": f"Client-ID {access_key}"}
+    params = {"query": query, "per_page": 1, "orientation": "landscape", "content_filter": "high"}
+
+    try:
+        r = requests.get(search_url, params=params, headers=headers, timeout=10)
+        print("Search status:", r.status_code)
+        r.raise_for_status()
+        data = r.json()
+        results = data.get("results", [])
+        print("Results found:", len(results))
+        if not results:
+            print("STOP: no results from Unsplash")
+            return False
+
+        photo = results[0]
+
+        # REQUIRED by Unsplash: trigger download tracking
+        download_location = photo["links"]["download_location"]
+        track = requests.get(download_location, headers=headers, timeout=5)
+        print("Track status:", track.status_code)
+
+        image_url = photo["urls"]["regular"]
+        img_resp = requests.get(image_url, timeout=15)
+        print("Image download status:", img_resp.status_code)
+        img_resp.raise_for_status()
+
+        content_type = (img_resp.headers.get("Content-Type") or "").lower()
+        ext = "jpg"
+        if "png" in content_type:
+            ext = "png"
+        elif "webp" in content_type:
+            ext = "webp"
+
+        filename = f"auto_{_safe_name_for_file(recipe.name)}_{recipe.pk}.{ext}"
+        recipe.image.save(filename, ContentFile(img_resp.content), save=True)
+
+        print("SAVED IMAGE:", recipe.image.name)
+        print("=== UNSPLASH GENERATOR END ===\n")
+        return True
+
+    except Exception as e:
+        print("UNSPLASH ERROR:", repr(e))
+        print("=== UNSPLASH GENERATOR FAIL ===\n")
+        return False

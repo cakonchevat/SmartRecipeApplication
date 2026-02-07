@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.utils import timezone
 
-from smart_recipe_app.services import process_pantry_scan
+from smart_recipe_app.services import process_pantry_scan, generate_recipe_image_if_missing
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -364,50 +364,65 @@ def recipe_edit_ingredients(request, pk):
     edit_id = request.GET.get("edit")
     editing_rel = None
     if edit_id:
-        editing_rel = get_object_or_404(
-            RecipeIngredientRelation,
-            pk=edit_id,
-            recipe=recipe
-        )
+        editing_rel = get_object_or_404(RecipeIngredientRelation, id=edit_id, recipe=recipe)
 
     if request.method == "POST":
-        # if editing_rel exists -> update that row
-        if editing_rel:
-            form = RecipeIngredientRelationForm(request.POST, instance=editing_rel)
-        else:
-            form = RecipeIngredientRelationForm(request.POST)
+        form = (
+            RecipeIngredientRelationForm(request.POST, instance=editing_rel)
+            if editing_rel
+            else RecipeIngredientRelationForm(request.POST)
+        )
+
+        # ✅ CRITICAL: set recipe before validation so unique_together works
+        form.instance.recipe = recipe
 
         if form.is_valid():
-            rel = form.save(commit=False)
-            rel.recipe = recipe
-            rel.save()
-            return redirect("recipe_edit_ingredients", pk=pk)  # clears ?edit
+            new_rel = form.save(commit=False)  # contains ingredient + quantity (+ recipe set above)
+
+            if not editing_rel:
+                # ✅ If same ingredient already exists, update quantity instead of creating duplicate
+                existing = RecipeIngredientRelation.objects.filter(
+                    recipe=recipe,
+                    ingredient=new_rel.ingredient
+                ).first()
+
+                if existing:
+                    existing.quantity += new_rel.quantity
+                    existing.save(update_fields=["quantity"])
+                    messages.info(request, f"Updated quantity for {existing.ingredient.name}.")
+                else:
+                    new_rel.save()
+                    messages.success(request, f"Added {new_rel.ingredient.name}.")
+            else:
+                # editing an existing relation
+                new_rel.save()
+                messages.success(request, f"Saved changes for {new_rel.ingredient.name}.")
+
+            # ✅ Generate image after ingredient change (if missing)
+            generate_recipe_image_if_missing(recipe)
+
+            return redirect("recipe_edit_ingredients", pk=recipe.pk)
+
     else:
-        # prefill when editing
-        if editing_rel:
-            form = RecipeIngredientRelationForm(instance=editing_rel)
-        else:
-            form = RecipeIngredientRelationForm()
+        form = RecipeIngredientRelationForm(instance=editing_rel) if editing_rel else RecipeIngredientRelationForm()
 
     return render(request, "recipes/recipe_edit_ingredients.html", {
         "recipe": recipe,
-        "form": form,
         "relations": relations,
+        "form": form,
         "editing_rel": editing_rel,
     })
+
 
 
 @login_required
 def recipe_remove_ingredient(request, pk, relation_id):
     recipe = get_object_or_404(Recipe, pk=pk)
-    relation = get_object_or_404(
-        RecipeIngredientRelation,
-        id=relation_id,
-        recipe=recipe
-    )
+    relation = get_object_or_404(RecipeIngredientRelation, id=relation_id, recipe=recipe)
 
     if request.method == "POST":
         relation.delete()
+        generate_recipe_image_if_missing(recipe)
         return redirect("recipe_edit_ingredients", pk=pk)
 
     return render(request, "common/confirm_delete.html", {
