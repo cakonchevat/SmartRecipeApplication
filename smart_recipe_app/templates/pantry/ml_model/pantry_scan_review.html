@@ -3,241 +3,372 @@
 {% block title %}Review Scan{% endblock %}
 
 {% block extra_css %}
-<style>
-  .review-container{
-    max-width: 1200px;
-    margin: 60px auto 80px;
-    padding: 0 40px;
-  }
+    <style>
+        .manual-entry {
+            border-color: #f0f0f0 !important;
+            background: #fbfbfb !important;
+            border-radius: 16px !important;
+        }
 
-  .page-header{
-    margin-bottom: 40px;
-  }
+        .review-container {
+            max-width: 1200px;
+            margin: 60px auto 80px;
+            padding: 0 40px;
+        }
 
-  .page-title{
-    font-family: 'Playfair Display', serif;
-    font-size: 42px;
-    font-weight: 900;
-    color: var(--text-dark);
-    margin-bottom: 8px;
-  }
+        .page-header {
+            margin-bottom: 40px;
+        }
 
-  .page-subtitle{
-    font-size: 16px;
-    color: var(--text-muted);
-  }
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
 
-  .review-card{
-    background: white;
-    border: 1px solid #f0f0f0;
-    border-radius: 20px;
-    padding: 32px;
-  }
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+        }
 
-    .scan-image{
-      display: block;
-      max-width: 100%;
-      width: auto;              /* <- key */
-      height: auto;             /* <- key */
-      max-height: 420px;
-      object-fit: contain;      /* <- keep full image visible */
-      border-radius: 16px;
-      border: 1px solid #f0f0f0;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      margin: 18px auto;        /* <- center */
-    }
+        .review-card {
+            background: white;
+            border: 1px solid #f0f0f0;
+            border-radius: 20px;
+            padding: 32px;
+        }
 
-  .table-wrap{
-    border: 1px solid #f0f0f0;
-    border-radius: 16px;
-    overflow: hidden;
-    background: white;
-    margin-top: 14px;
-  }
+        .scan-image {
+            display: block;
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            max-height: 420px;
+            object-fit: contain;
+            border-radius: 16px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            margin: 18px auto;
+        }
 
-  table.review-table{
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 0;
-  }
+        .table-wrap {
+            border: 1px solid #f0f0f0;
+            border-radius: 16px;
+            overflow: hidden;
+            background: white;
+            margin-top: 14px;
+        }
 
-  .review-table thead th{
-    background: #fbfbfb;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-muted);
-    padding: 14px 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
+        table.review-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 0;
+        }
 
-  .review-table tbody td{
-    padding: 14px 16px;
-    border-bottom: 1px solid #f5f5f5;
-    vertical-align: middle;
-    font-size: 14px;
-    color: var(--text-dark);
-  }
+        .review-table thead th {
+            background: #fbfbfb;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 14px 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
 
-  .review-table tbody tr:hover td{
-    background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
-  }
+        .review-table tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f5f5f5;
+            vertical-align: middle;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
 
-  .form-control, .form-select{
-    border: 1px solid #e8e8e8;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-  }
+        .review-table tbody tr:hover td {
+            background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 30%);
+        }
 
-  .form-control:focus, .form-select:focus{
-    border-color: var(--vintage-grape);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(73, 65, 109, 0.1);
-  }
+        .form-control, .form-select {
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
 
-  .pill{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 700;
-    white-space: nowrap;
-    background: #fafafa;
-    border: 1px solid #f0f0f0;
-    color: var(--text-muted);
-  }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--vintage-grape);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(73, 65, 109, 0.1);
+        }
 
-  .form-actions{
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 24px;
-    padding-top: 22px;
-    border-top: 1px solid #f0f0f0;
-    flex-wrap: wrap;
-  }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            color: var(--text-muted);
+        }
 
-  .btn-submit{
-    background: var(--vintage-grape);
-    color: white;
-    border: none;
-    padding: 14px 32px;
-    border-radius: 50px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 22px;
+            border-top: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+        }
 
-  .btn-submit:hover{
-    background: var(--bright-lavender);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
-  }
+        .btn-submit {
+            background: var(--vintage-grape);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-  .btn-cancel{
-    background: white;
-    color: var(--text-dark);
-    border: 2px solid #e8e8e8;
-    padding: 12px 32px;
-    border-radius: 50px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
+        .btn-submit:hover {
+            background: var(--bright-lavender);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(73, 65, 109, 0.3);
+        }
 
-  .btn-cancel:hover{
-    border-color: var(--text-dark);
-    transform: translateY(-1px);
-  }
+        .btn-cancel {
+            background: white;
+            color: var(--text-dark);
+            border: 2px solid #e8e8e8;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-  @media (max-width: 768px){
-    .review-container{ padding: 0 18px; }
-    .page-title{ font-size: 36px; }
-    .review-card{ padding: 22px; }
-  }
-</style>
+        .btn-cancel:hover {
+            border-color: var(--text-dark);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .review-container {
+                padding: 0 18px;
+            }
+
+            .page-title {
+                font-size: 36px;
+            }
+
+            .review-card {
+                padding: 22px;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="review-container">
-  <div class="page-header">
-    <h1 class="page-title">Review Scan</h1>
-    <p class="page-subtitle">Approve detected items to add to your pantry</p>
-  </div>
+    <div class="review-container">
+        <div class="page-header">
+            <h1 class="page-title">Review Scan</h1>
+            <p class="page-subtitle">Approve detected items to add to your pantry</p>
+        </div>
 
-  <div class="review-card">
-    {% if scan.image %}
-      <img src="{{ scan.image.url }}" alt="Scan image" class="scan-image">
-    {% endif %}
+        <div class="review-card">
+            {% if scan.image %}
+                <img src="{{ scan.image.url }}" alt="Scan image" class="scan-image">
+            {% endif %}
 
-    <form method="post">
-      {% csrf_token %}
+            <form method="post">
+                {% csrf_token %}
 
-      <div class="table-responsive table-wrap">
-        <table class="review-table">
-          <thead>
-            <tr>
-              <th>Detected</th>
-              <th>Confidence</th>
-              <th>Quantity</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+                <div class="manual-entry bg-light border rounded-4 p-3 mb-4 mt-4">
+                    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                        <p class="text-muted mb-0">
+                            Didn’t find your product? You can add it manually:
+                        </p>
+                        <button
+                                type="button"
+                                id="add-produce-row"
+                                class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-inline-flex align-items-center gap-2"
+                        >
+                            <i class="bi bi-plus-lg"></i> Add
+                        </button>
+                    </div>
 
-          <tbody>
-          {% for d in detections %}
-            <tr>
-              <td><strong>{{ d.label }}</strong></td>
-              <td>
+                    <div id="manual-produce-rows" class="row g-3">
+                        <div class="manual-row col-12">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-12 col-md-4 col-lg-3">
+                                    <label class="form-label text-uppercase small fw-bold text-muted mb-1">
+                                        Produce
+                                    </label>
+                                    <input
+                                            type="text"
+                                            class="form-control"
+                                            name="manual_product[]"
+                                            placeholder="e.g. Apple"
+                                    >
+                                </div>
+
+                                <div class="col-12 col-md-4 col-lg-3">
+                                    <label class="form-label text-uppercase small fw-bold text-muted mb-1">
+                                        Quantity
+                                    </label>
+                                    <input
+                                            type="number"
+                                            class="form-control"
+                                            name="manual_quantity[]"
+                                            min="1"
+                                            step="1"
+                                            placeholder="1"
+                                    >
+                                </div>
+
+                                <div class="col-12 col-md-2">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger rounded-pill remove-produce-row d-none">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="table-responsive table-wrap">
+                        <table class="review-table">
+                            <thead>
+                            <tr>
+                                <th>Detected</th>
+                                <th>Confidence</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for d in detections %}
+                                <tr>
+                                    <td><strong>{{ d.label }}</strong></td>
+                                    <td>
                 <span class="pill">
                   <i class="bi bi-bar-chart"></i> {{ d.confidence|floatformat:2 }}
                 </span>
-              </td>
+                                    </td>
 
-              <td>
-                <input
-                  type="number"
-                  step="1"
-                  min="1"
-                  name="quantity_{{ d.id }}"
-                  class="form-control"
-                  value="{{ d.quantity_guess|default:1|floatformat:0 }}"
-                  style="max-width: 160px;"
-                >
-              </td>
+                                    <td>
+                                        <input
+                                                type="number"
+                                                step="1"
+                                                min="1"
+                                                name="quantity_{{ d.id }}"
+                                                class="form-control"
+                                                value="{{ d.quantity_guess|default:1|floatformat:0 }}"
+                                                style="max-width: 160px;"
+                                        >
+                                    </td>
 
-              <td>
-                <select name="action_{{ d.id }}" class="form-select" style="max-width: 180px;">
-                  <option value="accept">Accept</option>
-                  <option value="reject">Reject</option>
-                </select>
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
+                                    <td>
+                                        <select name="action_{{ d.id }}" class="form-select" style="max-width: 180px;">
+                                            <option value="accept">Accept</option>
+                                            <option value="reject">Reject</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'pantry' %}" class="btn-cancel">Cancel</a>
+                    <button class="btn-submit" type="submit">
+                        <i class="bi bi-check2-circle"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const container = document.getElementById("manual-produce-rows");
+            const addBtn = document.getElementById("add-produce-row");
+
+            function updateRemoveButtons() {
+                const rows = container.querySelectorAll(".manual-row");
+                rows.forEach((row, idx) => {
+                    const removeBtn = row.querySelector(".remove-produce-row");
+                    if (!removeBtn) return;
+                    // покажи remove ако има повеќе од 1 ред
+                    removeBtn.classList.toggle("d-none", rows.length === 1);
+                });
+            }
+
+            function createRow() {
+                const wrapper = document.createElement("div");
+                wrapper.className = "manual-row col-12";
+                wrapper.innerHTML = `
+    <div class="row g-3 align-items-end">
+      <div class="col-12 col-md-4 col-lg-3">
+        <label class="form-label text-uppercase small fw-bold text-muted mb-1">Produce</label>
+        <input type="text" class="form-control" name="manual_product[]" placeholder="e.g. Apple">
       </div>
 
-      <div class="form-actions">
-        <a href="{% url 'pantry' %}" class="btn-cancel">Cancel</a>
-        <button class="btn-submit" type="submit">
-          <i class="bi bi-check2-circle"></i> Apply
+      <div class="col-12 col-md-4 col-lg-3">
+        <label class="form-label text-uppercase small fw-bold text-muted mb-1">Quantity</label>
+        <input type="number" class="form-control" name="manual_quantity[]" min="1" step="1" value="1">
+      </div>
+
+      <div class="col-12 col-md-2">
+        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill remove-produce-row">
+          <i class="bi bi-x-lg"></i>
         </button>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
+  `;
+                return wrapper;
+            }
+
+
+            addBtn.addEventListener("click", () => {
+                container.appendChild(createRow());
+                updateRemoveButtons();
+            });
+
+            container.addEventListener("click", (e) => {
+                const btn = e.target.closest(".remove-produce-row");
+                if (!btn) return;
+                const row = btn.closest(".manual-row");
+                if (row) row.remove();
+                updateRemoveButtons();
+            });
+
+            updateRemoveButtons();
+        })();
+    </script>
+
 {% endblock %}
+
+

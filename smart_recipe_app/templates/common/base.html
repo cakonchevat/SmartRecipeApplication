@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet">
 
     <style>
         :root {
@@ -74,6 +75,7 @@
         .header-nav {
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             gap: 40px;
         }
 
@@ -105,6 +107,40 @@
             cursor: pointer;
             transition: all 0.3s ease;
             color: var(--text-dark);
+        }
+
+        .user-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            transition: background 0.25s ease, transform 0.2s ease;
+        }
+
+        .user-trigger:hover {
+            background: #f5f5f5;
+        }
+
+        .username-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-caret {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-left: 2px;
+            transition: transform 0.2s ease;
+        }
+
+        .dropdown.show .user-caret {
+            transform: rotate(180deg);
         }
 
         .user-icon:hover {
@@ -207,7 +243,7 @@
             border: 1px solid #e8e8e8;
             border-radius: 16px;
             padding: 18px 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
             z-index: 99999;
             min-width: 320px;
             max-width: 420px;
@@ -215,62 +251,73 @@
             animation: slideInRight .25s ease;
         }
 
-        .custom-toast.show{ display:block; }
-
-        @keyframes slideInRight{
-            from{ transform: translateX(320px); opacity:0; }
-            to{ transform: translateX(0); opacity:1; }
+        .custom-toast.show {
+            display: block;
         }
 
-        .toast-content{
-            display:flex;
-            align-items:flex-start;
+        @keyframes slideInRight {
+            from {
+                transform: translateX(320px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: flex-start;
             gap: 12px;
         }
 
-        .toast-icon{
+        .toast-icon {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            display:flex;
-            align-items:center;
-            justify-content:center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: linear-gradient(135deg, var(--honeydew) 0%, var(--icy-aqua) 100%);
             color: var(--vintage-grape);
-            flex-shrink:0;
+            flex-shrink: 0;
             margin-top: 2px;
             font-size: 18px;
         }
 
-        .toast-body{ flex:1; min-width:0; }
+        .toast-body {
+            flex: 1;
+            min-width: 0;
+        }
 
-        .toast-title{
+        .toast-title {
             font-weight: 800;
             font-size: 15px;
             color: var(--text-dark);
             margin-bottom: 4px;
         }
 
-        .toast-message{
+        .toast-message {
             font-size: 14px;
             color: var(--text-muted);
             line-height: 1.4;
             word-break: break-word;
         }
 
-        .toast-close{
-            background:none;
-            border:none;
+        .toast-close {
+            background: none;
+            border: none;
             color: var(--text-muted);
             font-size: 22px;
             line-height: 1;
-            cursor:pointer;
+            cursor: pointer;
             width: 28px;
             height: 28px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            flex-shrink:0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
             margin-left: 6px;
             margin-top: -2px;
         }
@@ -394,7 +441,7 @@
                 gap: 40px;
             }
 
-            .custom-toast{
+            .custom-toast {
                 left: 15px;
                 right: 15px;
                 top: 110px;
@@ -408,9 +455,9 @@
 </head>
 
 <body>
-    <header class="clean-header">
-        <div class="header-container">
-            <a href="{% url 'index' %}" class="logo-text">Smart Recipe</a>
+<header class="clean-header">
+    <div class="header-container">
+        <a href="{% url 'index' %}" class="logo-text">Smart Recipe</a>
 
         {% if user.is_authenticated %}
             <nav class="header-nav">
@@ -420,16 +467,20 @@
                     <a href="{% url 'diet_list' %}" class="nav-link">Diets</a>
                     <a href="{% url 'allergen_list' %}" class="nav-link">Allergens</a>
                 {% endif %}
-            
             </nav>
 
             <div class="header-actions">
                 <div class="dropdown user-menu">
-                    <button class="user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                    <button class="user-btn dropdown-toggle user-trigger" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
                         <div class="user-avatar">
                             {{ user.username|first|upper }}
                         </div>
+                        <span class="username-label">{{ user.username }}</span>
+                        <i class="bi bi-chevron-down user-caret"></i>
                     </button>
+
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <a class="dropdown-item" href="{% url 'pantry' %}">
@@ -463,129 +514,109 @@
                     </ul>
                 </div>
             </div>
-            {% else %}
+        {% else %}
             <div class="header-actions">
                 <a href="{% url 'login' %}" class="nav-link">Login</a>
             </div>
-            {% endif %}
-        </div>
-    </header>
-
-    <div id="globalToast" class="custom-toast" aria-live="polite" aria-atomic="true">
-        <div class="toast-content">
-            <div class="toast-icon">
-                <i id="globalToastIcon" class="bi bi-check-circle"></i>
-            </div>
-
-            <div class="toast-body">
-                <div class="toast-title" id="globalToastTitle">Success</div>
-                <div class="toast-message" id="globalToastMessage">Done</div>
-            </div>
-
-            <button type="button" class="toast-close" onclick="hideGlobalToast()">×</button>
-        </div>
+        {% endif %}
     </div>
+</header>
 
-    <script>
-        function showGlobalToast(title, message, icon = 'check-circle'){
-            const toast = document.getElementById('globalToast');
-            document.getElementById('globalToastTitle').textContent = title;
-            document.getElementById('globalToastMessage').textContent = message;
-            document.getElementById('globalToastIcon').className = `bi bi-${icon}`;
+<div id="globalToast" class="custom-toast" aria-live="polite" aria-atomic="true">
+    <div class="toast-content">
+        <div class="toast-icon">
+            <i id="globalToastIcon" class="bi bi-check-circle"></i>
+        </div>
 
-            toast.classList.add('show');
+        <div class="toast-body">
+            <div class="toast-title" id="globalToastTitle">Success</div>
+            <div class="toast-message" id="globalToastMessage">Done</div>
+        </div>
 
-            clearTimeout(window.__globalToastTimer);
-            window.__globalToastTimer = setTimeout(hideGlobalToast, 3500);
-        }
+        <button type="button" class="toast-close" onclick="hideGlobalToast()">×</button>
+    </div>
+</div>
 
-        function hideGlobalToast(){
-            document.getElementById('globalToast').classList.remove('show');
-        }
-    </script>
+<script>
+    function showGlobalToast(title, message, icon = 'check-circle') {
+        const toast = document.getElementById('globalToast');
+        document.getElementById('globalToastTitle').textContent = title;
+        document.getElementById('globalToastMessage').textContent = message;
+        document.getElementById('globalToastIcon').className = `bi bi-${icon}`;
 
-    {% if messages %}
+        toast.classList.add('show');
+
+        clearTimeout(window.__globalToastTimer);
+        window.__globalToastTimer = setTimeout(hideGlobalToast, 3500);
+    }
+
+    function hideGlobalToast() {
+        document.getElementById('globalToast').classList.remove('show');
+    }
+</script>
+
+{% if messages %}
     <script>
         window.addEventListener('load', function () {
             {% for message in messages %}
-                (function(){
+                (function () {
                     const tag = "{{ message.tags }}";
                     let title = "Success";
                     let icon = "check-circle";
 
-                    if (tag.includes("error")) { title = "Error"; icon = "x-circle"; }
-                    else if (tag.includes("warning")) { title = "Warning"; icon = "exclamation-triangle"; }
-                    else if (tag.includes("info")) { title = "Info"; icon = "info-circle"; }
+                    if (tag.includes("error")) {
+                        title = "Error";
+                        icon = "x-circle";
+                    } else if (tag.includes("warning")) {
+                        title = "Warning";
+                        icon = "exclamation-triangle";
+                    } else if (tag.includes("info")) {
+                        title = "Info";
+                        icon = "info-circle";
+                    }
 
                     showGlobalToast(title, "{{ message|striptags|escapejs }}", icon);
                 })();
             {% endfor %}
         });
     </script>
-    {% endif %}
+{% endif %}
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+<main>
+    {% block content %}{% endblock %}
+</main>
 
-    <footer class="clean-footer">
-        <div class="footer-container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <h3>Smart Recipe</h3>
-                    <p>Your personal cooking companion. Discover delicious recipes, manage your pantry, and plan meals effortlessly.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link" aria-label="Instagram">
-                            <i class="bi bi-instagram"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="Facebook">
-                            <i class="bi bi-facebook"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="Twitter">
-                            <i class="bi bi-twitter"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="Pinterest">
-                            <i class="bi bi-pinterest"></i>
-                        </a>
-                    </div>
+<footer class="clean-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>Smart Recipe</h3>
+                <p>Your personal cooking companion. Discover delicious recipes, manage your pantry, and plan meals
+                    effortlessly.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Pinterest">
+                        <i class="bi bi-pinterest"></i>
+                    </a>
                 </div>
-
-                <div class="footer-section">
-                    <ul class="footer-links">
-                        <li><a href="#">About us</a></li>
-                        <li><a href="#">Contact us</a></li>
-                        <li><a href="#">Feedback</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Legal</h4>
-                    <ul class="footer-links">
-                        <li><a href="#">Terms</a></li>
-                        <li><a href="#">Conditions</a></li>
-                        <li><a href="#">Cookies</a></li>
-                        <li><a href="#">Copyright</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Follow</h4>
-                    <ul class="footer-links">
-                        <li><a href="#">Facebook</a></li>
-                        <li><a href="#">Twitter</a></li>
-                        <li><a href="#">Instagram</a></li>
-                        <li><a href="#">Youtube</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="footer-bottom">
-                <p>&copy; 2025 Smart Recipe - A university project by Teona & Sofia</p>
             </div>
         </div>
-    </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_js %}{% endblock %}
+        <div class="footer-bottom">
+            <p>&copy; 2025 Smart Recipe - A university project by Teona & Sofia</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -2,8 +2,8 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Prefetch
-from django.http import JsonResponse, HttpResponseForbidden
+from django.db.models import Prefetch
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
@@ -13,7 +13,8 @@ from smart_recipe_app.forms import *
 from smart_recipe_app.models import *
 from smart_recipe_app.services import process_pantry_scan
 
-#Custom decorator for restricting role access
+
+# Custom decorator for restricting role access
 def group_required(group_name):
     def decorator(view_func):
         @wraps(view_func)
@@ -21,8 +22,11 @@ def group_required(group_name):
             if request.user.groups.filter(name=group_name).exists():
                 return view_func(request, *args, **kwargs)
             return render(request, "page_not_found.html", status=403)
+
         return _wrapped
+
     return decorator
+
 
 def register(request):
     if request.method == "POST":
@@ -35,9 +39,11 @@ def register(request):
 
     return render(request, "registration/register.html", {"form": form})
 
+
 @login_required
 def user_profile(request):
     return render(request, "registration/user_profile.html", {"user_obj": request.user})
+
 
 @login_required
 def index(request):
@@ -69,6 +75,7 @@ def index(request):
         "wishlist_count": wishlist_count,
         "today_recipes_count": today_recipes_count,
     })
+
 
 # ===== ALLERGEN VIEWS =====
 @login_required
@@ -189,7 +196,7 @@ def ingredient_list(request):
     if q:
         ingredients = ingredients.filter(name__icontains=q)
 
-    return render(request, "ingredients/ingredients.html", {"ingredients": ingredients, "q": q,})
+    return render(request, "ingredients/ingredients.html", {"ingredients": ingredients, "q": q, })
 
 
 @login_required
@@ -341,6 +348,7 @@ def recipe_detail(request, pk):
         "is_in_today_plan": is_in_today_plan,
     })
 
+
 @login_required
 @group_required("Admin")
 def recipe_create(request):
@@ -383,6 +391,7 @@ def recipe_edit(request, pk):
         "ingredient_form": ingredient_form,
         "relations": relations,
     })
+
 
 @login_required
 @group_required("Admin")
@@ -486,7 +495,6 @@ def toggle_wishlist(request, pk):
     return redirect("recipe_detail", pk=pk)
 
 
-
 @login_required
 @require_POST
 def add_recipe_to_today_plan(request, pk):
@@ -506,6 +514,7 @@ def add_recipe_to_today_plan(request, pk):
         messages.success(request, "Added to today’s plan.")
 
     return redirect("recipe_detail", pk=pk)
+
 
 # ===== PANTRY VIEWS =====
 def _get_user_pantry(user):
@@ -655,6 +664,7 @@ def daily_plan_create(request):
 
     return render(request, 'daily_plan/daily_plan_form.html', {'form': form})
 
+
 @login_required
 @require_POST
 def daily_plan_update(request, plan_id):
@@ -670,6 +680,7 @@ def daily_plan_update(request, plan_id):
             return JsonResponse({'error': 'Calories must be between 500 and 10000'}, status=400)
     except ValueError:
         return JsonResponse({'error': 'Invalid value'}, status=400)
+
 
 @login_required
 def daily_plan_remove_recipe(request, plan_id, recipe_id):
@@ -715,6 +726,7 @@ def daily_plan_delete(request, plan_id):
         "action_url": reverse("daily_plan_delete", args=[plan.id]),
         "confirm_text": "Delete",
     })
+
 
 # Views from services
 # Add to views.py
@@ -766,6 +778,7 @@ def cookable_recipes(request):
         'recipes': cookable,
     })
 
+
 # ML model
 @login_required
 def pantry_scan_create(request):
@@ -785,6 +798,7 @@ def pantry_scan_create(request):
 
     return render(request, "pantry/ml_model/pantry_scan_upload.html", {"form": form})
 
+
 @login_required
 def pantry_scan_review(request, scan_id):
     scan = get_object_or_404(PantryScan, id=scan_id, user=request.user)
@@ -793,8 +807,25 @@ def pantry_scan_review(request, scan_id):
     if request.method == "POST":
         pantry = _get_user_pantry(request.user)
 
+        # ---- MANUAL ITEMS ----
+        manual_products = request.POST.getlist("manual_product[]")
+        manual_quantities = request.POST.getlist("manual_quantity[]")
+
+        for product, qty in zip(manual_products, manual_quantities):
+            ingredient = _get_or_create_ingredient(product)
+            if ingredient is None:
+                continue
+
+            try:
+                quantity = int(qty) if qty else 1
+            except ValueError:
+                quantity = 1
+
+            _add_to_pantry(pantry, ingredient, quantity, PantryItemRelation.Source.MANUAL)
+
+        # ---- DETECTIONS ----
         for d in detections:
-            action = request.POST.get(f"action_{d.id}")  # "accept" / "reject"
+            action = request.POST.get(f"action_{d.id}")
 
             qty_str = request.POST.get(f"quantity_{d.id}")
             try:
@@ -804,40 +835,17 @@ def pantry_scan_review(request, scan_id):
             qty = max(1, qty)
 
             if action == "accept":
-                label = (d.label or "").strip().lower()
-                if not label:
+                ingredient = _get_or_create_ingredient(d.label)
+                if ingredient is None:
                     d.status = PantryScanDetection.ReviewStatus.REJECTED
                     d.save(update_fields=["status"])
                     continue
 
-                # 1) find existing ingredient by name (case-insensitive)
-                ingredient = Ingredient.objects.filter(name__iexact=label).first()
+                _add_to_pantry(pantry, ingredient, qty, PantryItemRelation.Source.ML_SCAN)
 
-                # 2) if not found -> create it with safe defaults
-                if ingredient is None:
-                    ingredient = Ingredient.objects.create(
-                        name=label,
-                        base_unit="pcs",               # <-- change if you want (e.g. "g")
-                        base_amount=1,
-                        calories_per_base_amount=0
-                    )
-
-                # 3) add/update pantry relation
-                obj, created = PantryItemRelation.objects.get_or_create(
-                    pantry=pantry,
-                    ingredient=ingredient,
-                    defaults={"quantity": qty, "source": PantryItemRelation.Source.ML_SCAN},
-                )
-                if not created:
-                    obj.quantity += qty
-                    obj.source = PantryItemRelation.Source.ML_SCAN
-                    obj.save(update_fields=["quantity", "source"])
-
-                # 4) mark detection as accepted + matched ingredient
                 d.matched_ingredient = ingredient
                 d.status = PantryScanDetection.ReviewStatus.ACCEPTED
                 d.save(update_fields=["matched_ingredient", "status"])
-
             else:
                 d.status = PantryScanDetection.ReviewStatus.REJECTED
                 d.save(update_fields=["status"])
@@ -848,6 +856,35 @@ def pantry_scan_review(request, scan_id):
         "scan": scan,
         "detections": detections,
     })
+def _get_or_create_ingredient(label: str) -> Ingredient | None:
+    label = (label or "").strip().lower()
+    if not label:
+        return None
+
+    ingredient = Ingredient.objects.filter(name__iexact=label).first()
+    if ingredient is None:
+        ingredient = Ingredient.objects.create(
+            name=label,
+            base_unit="pcs",
+            base_amount=1,
+            calories_per_base_amount=0
+        )
+    return ingredient
+
+
+def _add_to_pantry(pantry: Pantry, ingredient: Ingredient, quantity: int, source) -> PantryItemRelation:
+    quantity = max(1, int(quantity or 1))
+
+    obj, created = PantryItemRelation.objects.get_or_create(
+        pantry=pantry,
+        ingredient=ingredient,
+        defaults={"quantity": quantity, "source": source},
+    )
+    if not created:
+        obj.quantity += quantity
+        obj.source = source
+        obj.save(update_fields=["quantity", "source"])
+    return obj
 
 @login_required
 def pantry_scan_processing(request, scan_id):
@@ -869,5 +906,3 @@ def pantry_scan_processing(request, scan_id):
         return redirect("pantry_scan")
 
     return redirect("pantry_scan_review", scan_id=scan.id)
-
-
