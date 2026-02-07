@@ -434,7 +434,7 @@
             </a>
 
             {% if user|has_group:"Admin" %}
-                <a href="{% url 'recipe_delete' recipe.id %}?next={% url 'recipe_detail' recipe.id %}"
+               <a href="{% url 'recipe_delete' recipe.id %}?next={% url 'recipe_list' %}"
                    class="btn-action btn-delete">
                     <i class="bi bi-trash"></i>
                     Delete Recipe
