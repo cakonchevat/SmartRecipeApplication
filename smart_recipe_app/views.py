@@ -13,7 +13,6 @@ from smart_recipe_app.forms import *
 from smart_recipe_app.models import *
 from smart_recipe_app.services import process_pantry_scan
 
-
 # Custom decorator for restricting role access
 def group_required(group_name):
     def decorator(view_func):
@@ -24,9 +23,7 @@ def group_required(group_name):
             return render(request, "page_not_found.html", status=403)
 
         return _wrapped
-
     return decorator
-
 
 def register(request):
     if request.method == "POST":

@@ -3,21 +3,15 @@ from django.db.models import Count
 from smart_recipe_app.models import Diet, Allergen, Ingredient, IngredientDietRelation, Recipe, \
     RecipeIngredientRelation, PantryItemRelation, Pantry, Wishlist, PantryScan, PantryScanDetection, DailyPlan
 
-
-# Register your models here.
-
-# Diet
 @admin.register(Diet)
 class DietAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
     search_fields = ('name',)
 
-# IngredientAllergens
 @admin.register(Allergen)
 class AllergenAdmin(admin.ModelAdmin):
     list_display = ("name",)
     search_fields = ("name",)
-
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
@@ -56,8 +50,8 @@ class RecipeIngredientInline(admin.TabularInline):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ("name", "no_of_servings", "preparation_time", "total_calories", "calories_per_serving",
                     'ingredient_count')
-    search_fields = ("name", "description")  # Add description search
-    list_filter = ("no_of_servings",)  # Add filter
+    search_fields = ("name", "description")
+    list_filter = ("no_of_servings",)
     inlines = [RecipeIngredientInline]
 
     def get_queryset(self, request):

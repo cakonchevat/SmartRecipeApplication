@@ -52,7 +52,7 @@ class IngredientForm(forms.ModelForm):
     def save(self, commit=True):
         ingredient = super().save(commit=commit)
 
-        if ingredient.pk:  # only after it exists
+        if ingredient.pk:
             ingredient.diets.clear()
             ingredient.diets.add(*self.cleaned_data.get('diets', []))
 

@@ -4,8 +4,6 @@ from datetime import date
 from django.db.models import Count, F, Q
 from django.conf import settings
 
-# TODO: Teona's tasks: Recipe, Ingredient, Diet
-
 class Diet(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True, help_text="Brief explanation of this diet (e.g., what foods are allowed/excluded)")
