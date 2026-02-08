@@ -78,7 +78,7 @@ class Recipe(models.Model):
             return self.total_calories / self.no_of_servings
         return None
 
-    # Set of recipes for a particular diets, based on their ingredients
+    # Set of recipes for a particular diet, based on their ingredients
     @classmethod
     def recipes_for_diet(cls, diet_id):
         qs = cls.objects.exclude(recipe_ingredients__isnull=True)

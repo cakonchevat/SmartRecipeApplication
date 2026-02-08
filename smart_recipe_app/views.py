@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 from functools import wraps
 
+from smart_recipe_app.services import process_pantry_scan, generate_recipe_image_if_missing
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from smart_recipe_app.forms import *
+from smart_recipe_app.models import *
+from django.db.models import Q, Prefetch
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -72,7 +78,6 @@ def index(request):
         "wishlist_count": wishlist_count,
         "today_recipes_count": today_recipes_count,
     })
-
 
 # ===== ALLERGEN VIEWS =====
 @login_required
@@ -400,30 +405,47 @@ def recipe_edit_ingredients(request, pk):
     edit_id = request.GET.get("edit")
     editing_rel = None
     if edit_id:
-        editing_rel = get_object_or_404(
-            RecipeIngredientRelation,
-            pk=edit_id,
-            recipe=recipe
-        )
+        editing_rel = get_object_or_404(RecipeIngredientRelation, id=edit_id, recipe=recipe)
 
     if request.method == "POST":
-        # if editing_rel exists -> update that row
-        if editing_rel:
-            form = RecipeIngredientRelationForm(request.POST, instance=editing_rel)
-        else:
-            form = RecipeIngredientRelationForm(request.POST)
+        form = (
+            RecipeIngredientRelationForm(request.POST, instance=editing_rel)
+            if editing_rel
+            else RecipeIngredientRelationForm(request.POST)
+        )
+
+        # set recipe before validation so unique_together works
+        form.instance.recipe = recipe
 
         if form.is_valid():
-            rel = form.save(commit=False)
-            rel.recipe = recipe
-            rel.save()
-            return redirect("recipe_edit_ingredients", pk=pk)  # clears ?edit
+            new_rel = form.save(commit=False)  # contains ingredient + quantity (+ recipe set above)
+
+            if not editing_rel:
+                # if the same ingredient already exists, update quantity instead of creating duplicate
+                existing = RecipeIngredientRelation.objects.filter(
+                    recipe=recipe,
+                    ingredient=new_rel.ingredient
+                ).first()
+
+                if existing:
+                    existing.quantity += new_rel.quantity
+                    existing.save(update_fields=["quantity"])
+                    messages.info(request, f"Updated quantity for {existing.ingredient.name}.")
+                else:
+                    new_rel.save()
+                    messages.success(request, f"Added {new_rel.ingredient.name}.")
+            else:
+                # editing an existing relation
+                new_rel.save()
+                messages.success(request, f"Saved changes for {new_rel.ingredient.name}.")
+
+            # Generate image after ingredient change (if missing)
+            generate_recipe_image_if_missing(recipe)
+
+            return redirect("recipe_edit_ingredients", pk=recipe.pk)
+
     else:
-        # prefill when editing
-        if editing_rel:
-            form = RecipeIngredientRelationForm(instance=editing_rel)
-        else:
-            form = RecipeIngredientRelationForm()
+        form = RecipeIngredientRelationForm(instance=editing_rel) if editing_rel else RecipeIngredientRelationForm()
 
     return render(request, "recipes/recipe_edit_ingredients.html", {
         "recipe": recipe,
@@ -437,14 +459,11 @@ def recipe_edit_ingredients(request, pk):
 @group_required("Admin")
 def recipe_remove_ingredient(request, pk, relation_id):
     recipe = get_object_or_404(Recipe, pk=pk)
-    relation = get_object_or_404(
-        RecipeIngredientRelation,
-        id=relation_id,
-        recipe=recipe
-    )
+    relation = get_object_or_404(RecipeIngredientRelation, id=relation_id, recipe=recipe)
 
     if request.method == "POST":
         relation.delete()
+        generate_recipe_image_if_missing(recipe)
         return redirect("recipe_edit_ingredients", pk=pk)
 
     return render(request, "common/confirm_delete.html", {
@@ -853,6 +872,8 @@ def pantry_scan_review(request, scan_id):
         "scan": scan,
         "detections": detections,
     })
+
+
 def _get_or_create_ingredient(label: str) -> Ingredient | None:
     label = (label or "").strip().lower()
     if not label:
@@ -887,7 +908,6 @@ def _add_to_pantry(pantry: Pantry, ingredient: Ingredient, quantity: int, source
 def pantry_scan_processing(request, scan_id):
     scan = get_object_or_404(PantryScan, id=scan_id, user=request.user)
 
-    # If already done/failed, jump away
     if scan.status == PantryScan.Status.DONE:
         return redirect("pantry_scan_review", scan_id=scan.id)
 
@@ -895,7 +915,6 @@ def pantry_scan_processing(request, scan_id):
         messages.error(request, f"Scan failed: {scan.error_message}")
         return redirect("pantry_scan")
 
-    # RUN THE SCAN NOW (SYNC)
     process_pantry_scan(scan)
 
     if scan.status == PantryScan.Status.FAILED:
@@ -903,3 +922,30 @@ def pantry_scan_processing(request, scan_id):
         return redirect("pantry_scan")
 
     return redirect("pantry_scan_review", scan_id=scan.id)
+
+
+@login_required
+def recipe_regenerate_image(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+
+    if request.method == "POST":
+        # Delete old image if exists
+        if recipe.image:
+            recipe.image.delete(save=True)
+
+        # Force regeneration
+        success = generate_recipe_image_if_missing(recipe)
+
+        if success:
+            messages.success(request, "Image regenerated successfully!")
+        else:
+            messages.error(request, "Failed to generate image. Check console logs.")
+
+        return redirect("recipe_edit_ingredients", pk=pk)
+
+    return render(request, "common/confirm_action.html", {
+        "action": "Regenerate Image",
+        "object_name": recipe.name,
+        "warning": "This will replace the current image with a new auto-generated one.",
+        "cancel_url": reverse("recipe_edit_ingredients", args=[pk]),
+    })
