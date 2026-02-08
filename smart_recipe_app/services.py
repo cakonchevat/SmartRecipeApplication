@@ -1,16 +1,11 @@
-import re
-
-import requests
-from django.utils.baseconv import base64
-
 from .ml_scan import detect_ingredients_local_yolo
 from .models import Recipe, Pantry, PantryScan, PantryScanDetection, PantryItemRelation, Ingredient, RecipeIngredientRelation
-import json
-import os
 from django.utils import timezone
-from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
+import os
+import re
+import requests
 from django.core.files.base import ContentFile
+from .models import RecipeIngredientRelation
 
 def suggest_recipes(wanted_calories, diet=None, excluded_allergen_ids=None):
     """
@@ -115,130 +110,6 @@ def get_cookable_recipes(user):
     return cookable
 
 
-def _guess_media_type(image_path: str) -> str:
-    lower = image_path.lower()
-    if lower.endswith(".jpg") or lower.endswith(".jpeg"):
-        return "image/jpeg"
-    if lower.endswith(".png"):
-        return "image/png"
-    if lower.endswith(".gif"):
-        return "image/gif"
-    if lower.endswith(".webp"):
-        return "image/webp"
-    return "image/jpeg"
-
-
-def _b64_image(image_path: str) -> str:
-    with open(image_path, "rb") as f:
-        return base64.b64encode(f.read()).decode("utf-8")
-
-
-def detect_ingredients_with_claude(image_path: str):
-    """
-    Returns list of dicts:
-    [{"label": "banana", "confidence": 0.82, "quantity_guess": 3}, ...]
-    """
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError("Missing ANTHROPIC_API_KEY in environment (.env).")
-
-    try:
-        from anthropic import Anthropic
-    except Exception as e:
-        raise RuntimeError("Missing package 'anthropic'. Install with: pip install anthropic") from e
-
-    client = Anthropic(api_key=api_key)
-
-    media_type = _guess_media_type(image_path)
-    img_b64 = _b64_image(image_path)
-
-    prompt = """
-Return ONLY valid JSON (no markdown, no extra text).
-
-Identify FOOD ingredients/items visible in the image (fridge/pantry photo).
-Use short common names in English, lowercase. Avoid brands.
-
-Output must be a JSON array, each element:
-{
-  "label": "banana",
-  "confidence": 0.0-1.0,
-  "quantity_guess": number or null
-}
-"""
-
-    resp = client.messages.create(
-        model="claude-3-5-sonnet-latest",
-        max_tokens=600,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": img_b64,
-                        },
-                    },
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ],
-    )
-
-    text_out = ""
-    for block in resp.content:
-        if getattr(block, "type", None) == "text":
-            text_out += block.text
-
-    text_out = text_out.strip()
-
-    try:
-        data = json.loads(text_out)
-    except json.JSONDecodeError:
-        # fallback: extract JSON array if extra text was returned
-        start = text_out.find("[")
-        end = text_out.rfind("]")
-        if start != -1 and end != -1 and end > start:
-            data = json.loads(text_out[start:end + 1])
-        else:
-            raise RuntimeError(f"Claude did not return valid JSON. Output was: {text_out[:500]}")
-
-    normalized = []
-    if isinstance(data, list):
-        for item in data:
-            label = str(item.get("label", "")).strip().lower()
-            if not label:
-                continue
-
-            try:
-                confidence = float(item.get("confidence", 0.5) or 0.5)
-            except Exception:
-                confidence = 0.5
-            confidence = max(0.0, min(1.0, confidence))
-
-            qg = item.get("quantity_guess", None)
-            try:
-                qg = float(qg) if qg is not None else None
-            except Exception:
-                qg = None
-
-            normalized.append(
-                {"label": label, "confidence": confidence, "quantity_guess": qg}
-            )
-
-    # dedupe by label (keep highest confidence)
-    best = {}
-    for item in normalized:
-        lbl = item["label"]
-        if lbl not in best or item["confidence"] > best[lbl]["confidence"]:
-            best[lbl] = item
-    normalized = list(best.values())
-
-    return normalized
-
-
 def process_pantry_scan(scan: PantryScan) -> None:
     """
     Runs Claude scan, stores raw_output, and creates PantryScanDetection rows (PENDING).
@@ -295,86 +166,153 @@ def apply_detection_to_pantry(pantry, ingredient: Ingredient, quantity: float):
 
 def build_unsplash_query(recipe):
     """
-    Build a search query that prioritizes recipe name.
-    Ingredients are only used as fallback hints.
+    Build focused search queries prioritizing recipe name.
+    Simpler queries = better matches with website search.
     """
     name = recipe.name.strip()
 
-    # If recipe name already contains food keywords, use it directly
-    if len(name.split()) >= 2:
-        return f"{name} food"
+    queries = []
 
-    # Fallback: add main ingredient if name is too generic
-    main_ing = _pick_main_ingredient_name(recipe)
-    if main_ing:
-        return f"{name} {main_ing} food"
+    # Strategy 1: Just the recipe name (simplest, often best!)
+    queries.append(name)
 
-    return f"{name} food"
+    # Strategy 2: Recipe name + "recipe"
+    queries.append(f"{name} recipe")
 
-def _pick_main_ingredient_name(recipe) -> str:
-    rel = (RecipeIngredientRelation.objects
-           .select_related("ingredient")
-           .filter(recipe_id=recipe.pk)
-           .order_by("id")
-           .first())
-    return rel.ingredient.name if rel else ""
+    # Strategy 3: Recipe name + "dish"
+    queries.append(f"{name} dish")
+
+    # Strategy 4: Recipe name + "food" (last resort)
+    queries.append(f"{name} food")
+
+    return queries
+
+
+def _get_single_key_ingredient(recipe):
+    """
+    Get ONE most important ingredient (not generic).
+    This is only used for generic recipe names like 'soup' or 'salad'.
+    """
+    GENERIC_INGREDIENTS = {
+        'salt', 'pepper', 'water', 'oil', 'olive oil', 'vegetable oil',
+        'butter', 'sugar', 'flour', 'black pepper', 'white pepper',
+        'egg', 'eggs', 'milk', 'cream'  # Added common baking ingredients
+    }
+
+    relations = (RecipeIngredientRelation.objects
+                 .select_related("ingredient")
+                 .filter(recipe_id=recipe.pk)
+                 .order_by("-quantity"))
+
+    for rel in relations:
+        ing_name = rel.ingredient.name.lower().strip()
+
+        # Return first non-generic ingredient
+        if ing_name not in GENERIC_INGREDIENTS:
+            return ing_name
+
+    return ""
+
 
 def _safe_name_for_file(text: str) -> str:
     text = text.strip().lower().replace(" ", "_")
     text = re.sub(r"[^a-z0-9_]+", "", text)
     return text[:40] if text else "recipe"
 
-def generate_recipe_image_if_missing(recipe) -> bool:
-    print("\n=== UNSPLASH GENERATOR START ===")
-    print("Recipe:", recipe.pk, recipe.name)
 
-    if recipe.image:
-        print("STOP: recipe already has image")
-        return False
-
-    has_ingredients = RecipeIngredientRelation.objects.filter(recipe_id=recipe.pk).exists()
-    print("Has ingredients?", has_ingredients)
-    if not has_ingredients:
-        print("STOP: no ingredients yet")
-        return False
-
-    access_key = os.getenv("UNSPLASH_ACCESS_KEY")
-    print("Key exists?", bool(access_key))
-    if not access_key:
-        print("STOP: UNSPLASH_ACCESS_KEY not set in environment")
-        return False
-
-    query = build_unsplash_query(recipe)
-    query = re.sub(r"\s+", " ", query).strip()
-    print("Query:", query)
-
+def _search_unsplash(query, access_key):
+    """
+    Search Unsplash with a single query.
+    Returns photo dict or None.
+    """
     search_url = "https://api.unsplash.com/search/photos"
     headers = {"Authorization": f"Client-ID {access_key}"}
-    params = {"query": query, "per_page": 1, "orientation": "landscape", "content_filter": "high"}
+    params = {
+        "query": query,
+        "per_page": 5,  # Get top 5 instead of just 1
+        "orientation": "landscape",
+        "content_filter": "high",
+        "order_by": "relevant"
+    }
 
     try:
         r = requests.get(search_url, params=params, headers=headers, timeout=10)
-        print("Search status:", r.status_code)
         r.raise_for_status()
         data = r.json()
         results = data.get("results", [])
-        print("Results found:", len(results))
-        if not results:
-            print("STOP: no results from Unsplash")
-            return False
 
-        photo = results[0]
+        if results:
+            # return the first (most relevant)
+            return results[0]
 
-        # REQUIRED by Unsplash: trigger download tracking
+        return None
+
+    except Exception as e:
+        print(f"Search failed for '{query}': {repr(e)}")
+        return None
+
+
+def generate_recipe_image_if_missing(recipe, force_regenerate=False) -> bool:
+    print("\nUNSPLASH GENERATOR START")
+    print(f"Recipe: {recipe.pk} - {recipe.name}")
+
+    if recipe.image and not force_regenerate:
+        print("✓ Recipe already has image")
+        return False
+
+    # Delete old image if forcing regeneration
+    if force_regenerate and recipe.image:
+        print("Forcing regeneration - deleting old image")
+        recipe.image.delete(save=False)
+
+    has_ingredients = RecipeIngredientRelation.objects.filter(recipe_id=recipe.pk).exists()
+    if not has_ingredients:
+        print("✗ No ingredients yet - skipping image generation")
+        return False
+
+    access_key = os.getenv("UNSPLASH_ACCESS_KEY")
+    if not access_key:
+        print("✗ UNSPLASH_ACCESS_KEY not set in environment")
+        return False
+
+    # Get query strategies
+    queries = build_unsplash_query(recipe)
+    print(f"Generated {len(queries)} search strategies:")
+    for i, q in enumerate(queries, 1):
+        print(f"  {i}. '{q}'")
+
+    photo = None
+    successful_query = None
+
+    # Try each query until one succeeds
+    for query in queries:
+        print(f"\nTrying: '{query}'")
+        photo = _search_unsplash(query, access_key)
+
+        if photo:
+            successful_query = query
+            print(f"✓ Found match with: '{query}'")
+            break
+        else:
+            print(f"✗ No results for: '{query}'")
+
+    if not photo:
+        print("✗ No images found with any strategy")
+        return False
+
+    # Download and save the image
+    try:
+        # Track download for Unsplash API guidelines
         download_location = photo["links"]["download_location"]
-        track = requests.get(download_location, headers=headers, timeout=5)
-        print("Track status:", track.status_code)
+        headers = {"Authorization": f"Client-ID {access_key}"}
+        requests.get(download_location, headers=headers, timeout=5)
 
+        # Get the image
         image_url = photo["urls"]["regular"]
         img_resp = requests.get(image_url, timeout=15)
-        print("Image download status:", img_resp.status_code)
         img_resp.raise_for_status()
 
+        # Determine file extension
         content_type = (img_resp.headers.get("Content-Type") or "").lower()
         ext = "jpg"
         if "png" in content_type:
@@ -385,11 +323,12 @@ def generate_recipe_image_if_missing(recipe) -> bool:
         filename = f"auto_{_safe_name_for_file(recipe.name)}_{recipe.pk}.{ext}"
         recipe.image.save(filename, ContentFile(img_resp.content), save=True)
 
-        print("SAVED IMAGE:", recipe.image.name)
-        print("=== UNSPLASH GENERATOR END ===\n")
+        print(f"✓ Image saved: {recipe.image.name}")
+        print(f"✓ Source query: '{successful_query}'")
+        print("=== UNSPLASH GENERATOR SUCCESS ===\n")
         return True
 
     except Exception as e:
-        print("UNSPLASH ERROR:", repr(e))
+        print(f"✗ Error downloading image: {repr(e)}")
         print("=== UNSPLASH GENERATOR FAIL ===\n")
         return False

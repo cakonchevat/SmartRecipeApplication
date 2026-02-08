@@ -414,7 +414,6 @@ def recipe_edit_ingredients(request, pk):
     })
 
 
-
 @login_required
 def recipe_remove_ingredient(request, pk, relation_id):
     recipe = get_object_or_404(Recipe, pk=pk)
@@ -836,7 +835,6 @@ def pantry_scan_review(request, scan_id):
 def pantry_scan_processing(request, scan_id):
     scan = get_object_or_404(PantryScan, id=scan_id, user=request.user)
 
-    # If already done/failed, jump away
     if scan.status == PantryScan.Status.DONE:
         return redirect("pantry_scan_review", scan_id=scan.id)
 
@@ -844,7 +842,6 @@ def pantry_scan_processing(request, scan_id):
         messages.error(request, f"Scan failed: {scan.error_message}")
         return redirect("pantry_scan")
 
-    # RUN THE SCAN NOW (SYNC)
     process_pantry_scan(scan)
 
     if scan.status == PantryScan.Status.FAILED:
@@ -852,3 +849,30 @@ def pantry_scan_processing(request, scan_id):
         return redirect("pantry_scan")
 
     return redirect("pantry_scan_review", scan_id=scan.id)
+
+
+@login_required
+def recipe_regenerate_image(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+
+    if request.method == "POST":
+        # Delete old image if exists
+        if recipe.image:
+            recipe.image.delete(save=True)
+
+        # Force regeneration
+        success = generate_recipe_image_if_missing(recipe)
+
+        if success:
+            messages.success(request, "Image regenerated successfully!")
+        else:
+            messages.error(request, "Failed to generate image. Check console logs.")
+
+        return redirect("recipe_edit_ingredients", pk=pk)
+
+    return render(request, "common/confirm_action.html", {
+        "action": "Regenerate Image",
+        "object_name": recipe.name,
+        "warning": "This will replace the current image with a new auto-generated one.",
+        "cancel_url": reverse("recipe_edit_ingredients", args=[pk]),
+    })
